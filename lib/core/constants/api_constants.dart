@@ -1,9 +1,10 @@
 // lib/core/constants/api_constants.dart
 class ApiConstants {
-  static const String baseUrl = 'http://your-go-api-url.com/api';
+  static const String baseUrl =
+      'https://d3ad-2001-448a-10b0-5eb1-d8c5-2286-ecf3-367d.ngrok-free.app/api';
 
   // Auth endpoints
-  static const String login = '/auth/login';
+  static const String login = 'auth/login';
   static const String register = '/auth/register';
   static const String verifyEmail = '/auth/verify-email';
   static const String forgotPassword = '/auth/forgot-password';

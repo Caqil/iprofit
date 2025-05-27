@@ -1,7 +1,6 @@
 // lib/core/services/biometric_service.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:local_auth/error_codes.dart' as auth_error;
 
 final biometricServiceProvider = Provider(
   (ref) => BiometricService(LocalAuthentication()),

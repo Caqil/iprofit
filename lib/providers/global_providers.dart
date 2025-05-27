@@ -7,7 +7,7 @@ import '../core/services/storage_service.dart';
 import '../core/services/notification_service.dart';
 import '../core/services/device_service.dart';
 import '../core/services/biometric_service.dart';
-import '../core/services/api_service.dart';
+import '../core/services/api_client.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:local_auth/local_auth.dart';
 
@@ -40,12 +40,6 @@ final biometricServiceProvider = Provider<BiometricService>((ref) {
   return BiometricService(LocalAuthentication());
 });
 
-final apiServiceProvider = Provider<ApiService>((ref) {
-  return ApiService(
-    dio: ref.watch(dioProvider),
-    secureStorage: ref.watch(secureStorageProvider),
-  );
-});
 
 // App state providers
 final isLoadingProvider = StateProvider<bool>((ref) => false);

@@ -1,5 +1,5 @@
 // lib/features/home/repositories/home_repository.dart
-import 'package:app/core/services/api_service.dart';
+import 'package:app/core/services/api_client.dart';
 
 import '../../../models/user.dart';
 import '../../../models/transaction.dart';

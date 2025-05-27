@@ -1,5 +1,5 @@
 // lib/features/wallet/repositories/wallet_repository.dart
-import 'package:app/core/services/api_service.dart';
+import 'package:app/core/services/api_client.dart';
 import '../../../models/transaction.dart';
 import '../../../repositories/base_repository.dart';
 

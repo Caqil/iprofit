@@ -1,5 +1,5 @@
 
-import 'package:app/core/services/api_service.dart';
+import 'package:app/core/services/api_client.dart';
 
 import '../../../models/referral.dart';
 import '../../../repositories/base_repository.dart';

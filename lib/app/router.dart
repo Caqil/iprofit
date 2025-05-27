@@ -1,7 +1,8 @@
-// lib/app/router.dart
+// lib/app/router.dart - Updated with onboarding logic
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/verify_email_screen.dart';
@@ -22,9 +23,51 @@ import '../features/news/screens/news_screen.dart';
 import '../features/news/screens/news_detail_screen.dart';
 import '../features/notifications/screens/notifications_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
+import '../features/onboarding/screens/onboarding_screen.dart';
+import '../core/constants/onboarding_constants.dart';
+import '../core/services/storage_service.dart' hide storageServiceProvider;
+import '../providers/global_providers.dart';
+
+final authStateChangesProvider = StreamProvider<bool>((ref) {
+  // Create a controller to emit values
+  final controller = StreamController<bool>();
+
+  // Watch the auth provider and emit a value whenever it changes
+  final subscription = ref.listen(authProvider, (_, state) {
+    controller.add(state.valueOrNull != null);
+  });
+
+  // Close the controller when the provider is disposed
+  ref.onDispose(() {
+    subscription.close();
+    controller.close();
+  });
+
+  // Initial value
+  controller.add(ref.read(authProvider).valueOrNull != null);
+
+  return controller.stream;
+});
+
+/// Custom RefreshStream implementation to force GoRouter to refresh on auth changes
+class GoRouterRefreshStream extends ChangeNotifier {
+  GoRouterRefreshStream(Stream<dynamic> stream) {
+    notifyListeners(); // Initial notification
+    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
+  }
+
+  late final StreamSubscription<dynamic> _subscription;
+
+  @override
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
+  }
+}
 
 // Define route names as constants for type safety
 class AppRoutes {
+  static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
   static const String verifyEmail = '/verify-email';
@@ -47,13 +90,24 @@ class AppRoutes {
 }
 
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
-
+  final refreshListenable = GoRouterRefreshStream(
+    ref.watch(authStateChangesProvider.stream),
+  );
   return GoRouter(
     initialLocation: AppRoutes.home,
     debugLogDiagnostics: true, // Enable for easier debugging
-    redirect: (context, state) async {
-      final isLoggedIn = authState.valueOrNull != null;
+    refreshListenable:
+        refreshListenable, // Add this to force router refresh on auth changes
+    redirect: (context, state) {
+      final authStateValue = ref.read(authProvider);
+      final isLoggedIn = authStateValue.valueOrNull != null;
+
+      // Get onboarding status
+      final storageService = ref.read(storageServiceProvider);
+      final hasCompletedOnboarding =
+          storageService.getBool(OnboardingConstants.hasCompletedOnboarding) ??
+          false;
+
       final isAuthRoute = [
         AppRoutes.login,
         AppRoutes.register,
@@ -61,12 +115,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         AppRoutes.forgotPassword,
       ].contains(state.uri.path);
 
-      if (!isLoggedIn && !isAuthRoute) {
+      final isOnboardingRoute = state.uri.path == AppRoutes.onboarding;
+
+      // If onboarding is not completed, redirect to onboarding
+      if (!hasCompletedOnboarding && !isOnboardingRoute) {
+        return AppRoutes.onboarding;
+      }
+
+      // If onboarding is completed but not logged in, redirect to login
+      if (hasCompletedOnboarding && !isLoggedIn && !isAuthRoute) {
         return AppRoutes.login;
       }
 
+      // If logged in but on auth route, redirect to home
       if (isLoggedIn && isAuthRoute) {
         return AppRoutes.home;
+      }
+
+      // If onboarding is completed and trying to access onboarding, redirect to appropriate page
+      if (hasCompletedOnboarding && isOnboardingRoute) {
+        return isLoggedIn ? AppRoutes.home : AppRoutes.login;
       }
 
       return null;
@@ -74,6 +142,12 @@ final routerProvider = Provider<GoRouter>((ref) {
     errorBuilder: (context, state) =>
         Scaffold(body: Center(child: Text('Page not found: ${state.uri}'))),
     routes: [
+      // Onboarding route
+      GoRoute(
+        path: AppRoutes.onboarding,
+        builder: (context, state) => const OnboardingScreen(),
+      ),
+
       // Auth routes
       GoRoute(
         path: AppRoutes.login,
@@ -94,6 +168,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
+
       // Main app routes
       GoRoute(
         path: AppRoutes.home,
@@ -115,10 +190,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.withdrawal,
         builder: (context, state) => const WithdrawalScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.transactions,
-        builder: (context, state) => const TransactionsScreen(),
-      ),
+      // GoRoute(
+      //   path: AppRoutes.transactions,
+      //   builder: (context, state) => const TransactionsScreen(),
+      // ),
       GoRoute(
         path: AppRoutes.tasks,
         builder: (context, state) => const TasksScreen(),

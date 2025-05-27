@@ -1,4 +1,4 @@
-// lib/main.dart
+// lib/main.dart - Updated with proper initialization
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,6 +10,7 @@ import 'core/services/storage_service.dart';
 import 'core/constants/storage_keys.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:timezone/data/latest.dart' as tz;
+import 'package:uuid/uuid.dart';
 
 void main() async {
   // Ensure Flutter is initialized
@@ -61,10 +62,13 @@ void main() async {
     await secureStorage.write(key: StorageKeys.deviceId, value: deviceId);
   }
 
-  // Run the app
+  // Run the app with a custom ProviderScope
   runApp(
     ProviderScope(
-      overrides: [storageServiceProvider.overrideWithValue(storageService)],
+      overrides: [
+        // Override the storage service provider with our initialized instance
+        storageServiceProvider.overrideWithValue(storageService),
+      ],
       child: const InvestmentApp(),
     ),
   );

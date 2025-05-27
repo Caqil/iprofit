@@ -1,4 +1,6 @@
 
+import 'package:app/core/services/api_client.dart';
+
 import '../../../models/user.dart';
 import '../../../repositories/base_repository.dart';
 

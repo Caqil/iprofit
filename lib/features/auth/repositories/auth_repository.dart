@@ -1,5 +1,5 @@
 // lib/features/auth/repositories/auth_repository.dart
-import 'package:app/core/services/api_service.dart';
+import 'package:app/core/services/api_client.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../core/services/dio_client.dart';
 import '../../../core/constants/storage_keys.dart';

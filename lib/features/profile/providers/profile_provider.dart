@@ -1,17 +1,15 @@
 // lib/features/profile/providers/profile_provider.dart
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:app/features/profile/repositories/user_repository.dart' show UserRepository;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../repositories/profile_repository.dart';
 import '../../../models/user.dart';
-import '../../../providers/global_providers.dart';
+import '../../../providers/global_providers.dart' hide biometricServiceProvider;
 import '../../../core/services/biometric_service.dart';
 import '../../../core/constants/storage_keys.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 part 'profile_provider.g.dart';
 
-final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
-  return ProfileRepository(apiClient: ref.watch(apiClientProvider));
+final profileRepositoryProvider = Provider<UserRepository>((ref) {
+  return UserRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 @riverpod
@@ -28,9 +26,16 @@ class Profile extends _$Profile {
   ) async {
     state = const AsyncLoading();
     try {
+      // Create a map with the user data
+      final userData = {
+        'name': name,
+        'phone': phone,
+        if (profilePicUrl != null) 'profile_pic_url': profilePicUrl,
+      };
+
       final updatedUser = await ref
           .read(profileRepositoryProvider)
-          .updateProfile(name, phone, profilePicUrl);
+          .updateProfile(userData);
       state = AsyncValue.data(updatedUser);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -60,7 +65,7 @@ class Profile extends _$Profile {
     try {
       if (currentUser.biometricEnabled) {
         // Disable biometric
-        await ref.read(profileRepositoryProvider).disableBiometric();
+        await ref.read(profileRepositoryProvider).toggleBiometric(false);
         await secureStorage.delete(key: StorageKeys.biometricEnabled);
 
         state = AsyncValue.data(currentUser.copyWith(biometricEnabled: false));
@@ -71,7 +76,7 @@ class Profile extends _$Profile {
         );
 
         if (authenticated) {
-          await ref.read(profileRepositoryProvider).enableBiometric();
+          await ref.read(profileRepositoryProvider).toggleBiometric(true);
           await secureStorage.write(
             key: StorageKeys.biometricEnabled,
             value: 'true',

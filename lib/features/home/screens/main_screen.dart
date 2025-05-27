@@ -1,6 +1,7 @@
 // lib/features/home/screens/main_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'home_screen.dart';
 import '../../wallet/screens/wallet_screen.dart';
 import '../../tasks/screens/tasks_screen.dart';

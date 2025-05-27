@@ -1,5 +1,5 @@
 // lib/features/news/repositories/news_repository.dart
-import 'package:app/core/services/api_service.dart';
+import 'package:app/core/services/api_client.dart';
 
 import '../../../core/services/api_client.dart';
 import '../../../models/news.dart';

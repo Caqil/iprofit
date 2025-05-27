@@ -1,9 +1,9 @@
-// lib/features/auth/providers/auth_provider.dart
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../profile/repositories/user_repository.dart';
 import '../repositories/auth_repository.dart';
 import '../../../models/user.dart';
-import '../../../providers/global_providers.dart';
+import '../../../providers/global_providers.dart' hide deviceServiceProvider;
 import '../../../core/services/device_service.dart';
 
 part 'auth_provider.g.dart';

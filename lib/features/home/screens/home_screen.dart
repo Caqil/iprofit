@@ -27,7 +27,7 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   // User greeting
                   Text(
-                    'Hello, ${homeData.user.name}',
+                    'Hello, ${homeData['user'].name}',
                     style: Theme.of(context).textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 4),
@@ -41,8 +41,8 @@ class HomeScreen extends ConsumerWidget {
 
                   // Balance card
                   BalanceCard(
-                    balance: homeData.user.balance,
-                    isKycVerified: homeData.user.isKycVerified,
+                    balance: homeData['user'].balance,
+                    isKycVerified: homeData['user'].isKycVerified,
                   ),
                   const SizedBox(height: 24),
 
@@ -51,11 +51,13 @@ class HomeScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
 
                   // Profit chart
-                  ProfitChart(profitData: homeData.profitData),
+                  ProfitChart(profitData: homeData['profitData']),
                   const SizedBox(height: 24),
 
                   // Recent transactions
-                  RecentTransactions(transactions: homeData.recentTransactions),
+                  RecentTransactions(
+                    transactions: homeData['recentTransactions'],
+                  ),
                 ],
               ),
             );

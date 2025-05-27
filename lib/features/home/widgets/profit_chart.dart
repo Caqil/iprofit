@@ -286,10 +286,6 @@ class _ProfitChartState extends State<ProfitChart>
         touchTooltipData: LineTouchTooltipData(
           tooltipPadding: const EdgeInsets.all(8),
           tooltipMargin: 8,
-          tooltipRoundedRadius: 8,
-          tooltipBgColor: isDark
-              ? Colors.grey[800]!.withOpacity(0.9)
-              : Colors.blueGrey.withOpacity(0.8),
           getTooltipItems: (touchedSpots) {
             return touchedSpots
                 .map((touchedSpot) {
@@ -344,8 +340,8 @@ class _ProfitChartState extends State<ProfitChart>
     }
 
     return SideTitleWidget(
-      axisSide: meta.axisSide,
       space: 8,
+      meta: meta,
       child: Text(
         text,
         style: TextStyle(
@@ -360,20 +356,25 @@ class _ProfitChartState extends State<ProfitChart>
   }
 
   Widget _leftTitleWidgets(double value, TitleMeta meta) {
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      space: 8,
-      child: Text(
-        Formatters.formatCurrency(value, compact: true),
-        style: TextStyle(
-          fontSize: 10,
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white70
-              : Colors.grey[600],
-          fontWeight: FontWeight.w600,
+    // Use a hardcoded interval or remove interval logic
+    const double interval = 100.0; // Example fallback interval
+    if (value % interval == 0) {
+      return SideTitleWidget(
+        space: 8,
+        meta: meta, // Pass the meta object to SideTitleWidget
+        child: Text(
+          Formatters.formatCurrency(value),
+          style: TextStyle(
+            fontSize: 10,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white70
+                : Colors.grey[600],
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
-    );
+      );
+    }
+    return Container(); // Return empty widget for non-matching values
   }
 
   Widget _buildStatItem(
@@ -453,7 +454,7 @@ class _ProfitChartState extends State<ProfitChart>
     return (max / 5).ceilToDouble();
   }
 
-  int _calculateDaysInterval(int totalDays) {
+  double _calculateDaysInterval(int totalDays) {
     if (totalDays <= 7) return 1;
     if (totalDays <= 30) return 5;
     return 10;

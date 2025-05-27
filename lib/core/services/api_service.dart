@@ -1,108 +1,114 @@
-// lib/core/services/api_client.dart
+// lib/core/services/api_service.dart
 import 'package:dio/dio.dart';
-import 'package:retrofit/retrofit.dart';
-import '../constants/api_constants.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../constants/storage_keys.dart';
+import 'api_client.dart';
 
-part 'api_service.g.dart';
+class ApiService {
+  final Dio _dio;
+  final FlutterSecureStorage _secureStorage;
+  late final ApiClient _apiClient;
 
-@RestApi(baseUrl: ApiConstants.baseUrl)
-abstract class ApiClient {
-  factory ApiClient(Dio dio, {String baseUrl}) = _ApiClient;
+  ApiService({required Dio dio, required FlutterSecureStorage secureStorage})
+    : _dio = dio,
+      _secureStorage = secureStorage {
+    _setupInterceptors();
+    _apiClient = ApiClient(_dio);
+  }
 
-  // Auth endpoints
-  @POST(ApiConstants.login)
-  Future<Map<String, dynamic>> login(@Body() Map<String, dynamic> body);
+  void _setupInterceptors() {
+    _dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = await _secureStorage.read(key: StorageKeys.token);
+          final deviceId = await _secureStorage.read(key: StorageKeys.deviceId);
 
-  @POST(ApiConstants.register)
-  Future<Map<String, dynamic>> register(@Body() Map<String, dynamic> body);
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
 
-  @POST(ApiConstants.verifyEmail)
-  Future<Map<String, dynamic>> verifyEmail(@Body() Map<String, dynamic> body);
+          if (deviceId != null) {
+            options.headers['X-Device-ID'] = deviceId;
+          }
 
-  @POST(ApiConstants.forgotPassword)
-  Future<Map<String, dynamic>> forgotPassword(
-    @Body() Map<String, dynamic> body,
-  );
+          return handler.next(options);
+        },
+        onError: (DioException error, handler) {
+          if (error.response?.statusCode == 401) {
+            // Handle token expiration or authentication errors
+            // You can add a listener to notify the app to log out the user
+          }
+          return handler.next(error);
+        },
+      ),
+    );
+  }
 
-  // User endpoints
-  @GET(ApiConstants.profile)
-  Future<Map<String, dynamic>> getProfile();
+  // Forward methods to the API client
 
-  @PUT(ApiConstants.updateProfile)
-  Future<Map<String, dynamic>> updateProfile(@Body() Map<String, dynamic> body);
+  // Auth methods
+  Future<Map<String, dynamic>> login(Map<String, dynamic> body) {
+    return _apiClient.login(body);
+  }
 
-  @PUT(ApiConstants.changePassword)
-  Future<Map<String, dynamic>> changePassword(
-    @Body() Map<String, dynamic> body,
-  );
+  Future<Map<String, dynamic>> register(Map<String, dynamic> body) {
+    return _apiClient.register(body);
+  }
 
-  // Plan endpoints
-  @GET(ApiConstants.plans)
-  Future<Map<String, dynamic>> getPlans();
+  Future<Map<String, dynamic>> verifyEmail(Map<String, dynamic> body) {
+    return _apiClient.verifyEmail(body);
+  }
 
-  @POST(ApiConstants.purchasePlan)
-  Future<Map<String, dynamic>> purchasePlan(@Path() int id);
+  Future<Map<String, dynamic>> forgotPassword(Map<String, dynamic> body) {
+    return _apiClient.forgotPassword(body);
+  }
 
-  // Deposit endpoints
-  @POST(ApiConstants.depositCoingate)
-  Future<Map<String, dynamic>> depositViaCoingate(
-    @Body() Map<String, dynamic> body,
-  );
+  // User methods
+  Future<Map<String, dynamic>> getProfile() {
+    return _apiClient.getProfile();
+  }
 
-  @POST(ApiConstants.depositUddoktapay)
-  Future<Map<String, dynamic>> depositViaUddoktapay(
-    @Body() Map<String, dynamic> body,
-  );
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> body) {
+    return _apiClient.updateProfile(body);
+  }
 
-  @POST(ApiConstants.depositManual)
-  Future<Map<String, dynamic>> depositViaManual(
-    @Body() Map<String, dynamic> body,
-  );
+  Future<Map<String, dynamic>> changePassword(Map<String, dynamic> body) {
+    return _apiClient.changePassword(body);
+  }
 
-  // Withdrawal endpoints
-  @GET(ApiConstants.withdrawals)
-  Future<Map<String, dynamic>> getWithdrawals();
+  // Plan methods
+  Future<Map<String, dynamic>> getPlans() {
+    return _apiClient.getPlans();
+  }
 
-  @POST(ApiConstants.withdrawals)
-  Future<Map<String, dynamic>> requestWithdrawal(
-    @Body() Map<String, dynamic> body,
-  );
+  Future<Map<String, dynamic>> purchasePlan(int id) {
+    return _apiClient.purchasePlan(id);
+  }
 
-  // Transaction endpoints
-  @GET(ApiConstants.transactions)
-  Future<Map<String, dynamic>> getTransactions();
+  // Generic methods
+  Future<Map<String, dynamic>> get(
+    String path, {
+    Map<String, dynamic>? queryParams,
+  }) {
+    return _apiClient.get(path, queryParams: queryParams);
+  }
 
-  // Task endpoints
-  @GET(ApiConstants.tasks)
-  Future<Map<String, dynamic>> getTasks();
+  Future<Map<String, dynamic>> post(String path, Map<String, dynamic> body) {
+    return _apiClient.post(path, body);
+  }
 
-  @POST('${ApiConstants.completeTask}')
-  Future<Map<String, dynamic>> completeTask(@Path() int id);
+  Future<Map<String, dynamic>> put(String path, Map<String, dynamic> body) {
+    return _apiClient.put(path, body);
+  }
 
-  // Referral endpoints
-  @GET(ApiConstants.referrals)
-  Future<Map<String, dynamic>> getReferrals();
+  Future<Map<String, dynamic>> patch(String path, Map<String, dynamic> body) {
+    return _apiClient.patch(path, body);
+  }
 
-  @GET(ApiConstants.referralEarnings)
-  Future<Map<String, dynamic>> getReferralEarnings();
-
-  // KYC endpoints
-  @POST(ApiConstants.kycSubmit)
-  Future<Map<String, dynamic>> submitKyc(@Body() Map<String, dynamic> body);
-
-  @GET(ApiConstants.kycStatus)
-  Future<Map<String, dynamic>> getKycStatus();
-
-  // Notification endpoints
-  @GET(ApiConstants.notifications)
-  Future<Map<String, dynamic>> getNotifications();
-
-  @GET(ApiConstants.unreadNotifications)
-  Future<Map<String, dynamic>> getUnreadNotificationsCount();
-
-  @PUT('${ApiConstants.markNotificationRead}')
-  Future<Map<String, dynamic>> markNotificationAsRead(@Path() int id);
-
-  @PUT(ApiConstants.markAllNotificationsRead)
-  Future<Map<String, dynamic>> markAllNotificationsAsRead();
+  Future<Map<String, dynamic>> delete(
+    String path, {
+    Map<String, dynamic>? body,
+  }) {
+    return _apiClient.delete(path, body: body);
+  }
 }

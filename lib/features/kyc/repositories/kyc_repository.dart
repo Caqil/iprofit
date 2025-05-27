@@ -1,5 +1,5 @@
 
-import 'package:app/core/services/api_service.dart';
+import 'package:app/core/services/api_client.dart';
 
 import '../../../core/enums/document_type.dart';
 import '../../../repositories/base_repository.dart';
