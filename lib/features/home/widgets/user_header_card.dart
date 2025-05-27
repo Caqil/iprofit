@@ -10,7 +10,7 @@ class UserHeaderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(5),
       child: Row(
         children: [
           // Profile picture

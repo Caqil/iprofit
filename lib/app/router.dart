@@ -200,10 +200,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.withdrawal,
         builder: (context, state) => const WithdrawalScreen(),
       ),
-      // GoRoute(
-      //   path: AppRoutes.transactions,
-      //   builder: (context, state) => const TransactionsScreen(),
-      // ),
+      GoRoute(
+        path: AppRoutes.transactions,
+        builder: (context, state) => const TransactionsScreen(),
+      ),
       GoRoute(
         path: AppRoutes.tasks,
         builder: (context, state) => const TasksScreen(),

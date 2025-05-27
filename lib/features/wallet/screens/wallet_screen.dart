@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/wallet_provider.dart';
+import '../providers/transaction_provider.dart';
 import '../../../features/auth/providers/auth_provider.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../shared/widgets/error_widget.dart';
@@ -13,7 +13,8 @@ class WalletScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionsState = ref.watch(transactionsProvider);
+    // Use transactionListProvider instead of transactionRepositoryProvider
+    final transactionsState = ref.watch(transactionListProvider());
     final authState = ref.watch(authProvider);
 
     final user = authState.valueOrNull;
@@ -21,7 +22,10 @@ class WalletScreen extends ConsumerWidget {
 
     return Scaffold(
       body: RefreshIndicator(
-        onRefresh: () => ref.read(transactionsProvider.notifier).refresh(),
+        // Use invalidate or refresh the correct provider
+        onRefresh: () async {
+          ref.invalidate(transactionListProvider());
+        },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -88,7 +92,8 @@ class WalletScreen extends ConsumerWidget {
                   padding: const EdgeInsets.all(16.0),
                   child: CustomErrorWidget(
                     error: error.toString(),
-                    onRetry: () => ref.refresh(transactionsProvider),
+                    // Use the correct provider here
+                    onRetry: () => ref.refresh(transactionListProvider()),
                   ),
                 ),
               ),
