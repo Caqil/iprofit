@@ -27,8 +27,49 @@ class Transaction extends Equatable {
     required this.createdAt,
   });
 
-  factory Transaction.fromJson(Map<String, dynamic> json) =>
-      _$TransactionFromJson(json);
+  // Manual fromJson to handle potential nulls and invalid data
+  factory Transaction.fromJson(Map<String, dynamic> json) {
+    TransactionType parseType(dynamic value) {
+      if (value is String) {
+        try {
+          return TransactionType.values.firstWhere(
+            (e) => e.toString() == 'TransactionType.$value' || e.name == value,
+            orElse: () => TransactionType.deposit,
+          );
+        } catch (_) {
+          return TransactionType.deposit;
+        }
+      }
+      return TransactionType.deposit;
+    }
+
+    TransactionStatus parseStatus(dynamic value) {
+      if (value is String) {
+        try {
+          return TransactionStatus.values.firstWhere(
+            (e) =>
+                e.toString() == 'TransactionStatus.$value' || e.name == value,
+            orElse: () => TransactionStatus.pending,
+          );
+        } catch (_) {
+          return TransactionStatus.pending;
+        }
+      }
+      return TransactionStatus.pending;
+    }
+
+    return Transaction(
+      id: json['id'] is num ? (json['id'] as num).toInt() : 0,
+      amount: json['amount'] is num ? (json['amount'] as num).toDouble() : 0.0,
+      type: parseType(json['type']),
+      status: parseStatus(json['status']),
+      description: json['description'] as String?,
+      createdAt:
+          json['created_at'] as String? ?? DateTime.now().toIso8601String(),
+    );
+  }
+
+  // We'll still use the generated toJson for convenience
   Map<String, dynamic> toJson() => _$TransactionToJson(this);
 
   @override

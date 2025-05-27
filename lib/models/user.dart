@@ -44,7 +44,29 @@ class User extends Equatable {
     required this.createdAt,
   });
 
-  factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
+  // Manual fromJson to handle potential nulls
+  factory User.fromJson(Map<String, dynamic> json) {
+    return User(
+      id: json['id'] is num ? (json['id'] as num).toInt() : 0,
+      name: json['name'] as String? ?? '',
+      email: json['email'] as String? ?? '',
+      phone: json['phone'] as String? ?? '',
+      balance: json['balance'] is num
+          ? (json['balance'] as num).toDouble()
+          : 0.0,
+      referralCode: json['referral_code'] as String? ?? '',
+      planId: json['plan_id'] is num ? (json['plan_id'] as num).toInt() : 0,
+      isKycVerified: json['is_kyc_verified'] as bool? ?? false,
+      isAdmin: json['is_admin'] as bool? ?? false,
+      isBlocked: json['is_blocked'] as bool? ?? false,
+      biometricEnabled: json['biometric_enabled'] as bool? ?? false,
+      profilePicUrl: json['profile_pic_url'] as String?,
+      createdAt:
+          json['created_at'] as String? ?? DateTime.now().toIso8601String(),
+    );
+  }
+
+  // We'll still use the generated toJson for convenience
   Map<String, dynamic> toJson() => _$UserToJson(this);
 
   @override

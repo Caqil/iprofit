@@ -128,8 +128,15 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Verify Email')),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Verify Email'),
+        backgroundColor: theme.appBarTheme.backgroundColor,
+        foregroundColor: theme.appBarTheme.foregroundColor,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -137,15 +144,20 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
           children: [
             const SizedBox(height: 40),
 
-            const Icon(Icons.mark_email_read, size: 80, color: Colors.blue),
+            Icon(
+              Icons.mark_email_read,
+              size: 80,
+              color: theme.colorScheme.primary,
+            ),
 
             const SizedBox(height: 24),
 
             Text(
               'Verify Your Email',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
+              ),
             ),
 
             const SizedBox(height: 16),
@@ -153,7 +165,9 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             Text(
               'We have sent a verification code to:\n${widget.email}',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16),
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface.withOpacity(0.7),
+              ),
             ),
 
             const SizedBox(height: 32),
@@ -161,17 +175,24 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             // Verification code field
             TextField(
               controller: _codeController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Verification Code',
                 hintText: 'Enter the code sent to your email',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                prefixIcon: Icon(
+                  Icons.verified_user,
+                  color: theme.colorScheme.primary,
+                ),
               ),
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 20,
                 letterSpacing: 8,
                 fontWeight: FontWeight.bold,
+                color: theme.colorScheme.onSurface,
               ),
             ),
 
@@ -192,11 +213,21 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
             // Resend code
             TextButton.icon(
               onPressed: _resendCountdown > 0 ? null : _resendCode,
-              icon: const Icon(Icons.refresh),
+              icon: Icon(
+                Icons.refresh,
+                color: _resendCountdown > 0
+                    ? theme.colorScheme.onSurface.withOpacity(0.5)
+                    : theme.colorScheme.primary,
+              ),
               label: Text(
                 _resendCountdown > 0
                     ? 'Resend Code in $_resendCountdown seconds'
                     : 'Resend Code',
+                style: TextStyle(
+                  color: _resendCountdown > 0
+                      ? theme.colorScheme.onSurface.withOpacity(0.5)
+                      : theme.colorScheme.primary,
+                ),
               ),
             ),
 
@@ -204,7 +235,10 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
 
             TextButton(
               onPressed: () => context.go('/login'),
-              child: const Text('Back to Login'),
+              child: Text(
+                'Back to Login',
+                style: TextStyle(color: theme.colorScheme.primary),
+              ),
             ),
           ],
         ),

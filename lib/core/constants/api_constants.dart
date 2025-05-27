@@ -4,7 +4,7 @@ class ApiConstants {
       'https://d3ad-2001-448a-10b0-5eb1-d8c5-2286-ecf3-367d.ngrok-free.app/api';
 
   // Auth endpoints
-  static const String login = 'auth/login';
+  static const String login = '/auth/login';
   static const String register = '/auth/register';
   static const String verifyEmail = '/auth/verify-email';
   static const String forgotPassword = '/auth/forgot-password';
@@ -14,24 +14,28 @@ class ApiConstants {
   static const String profile = '/user/profile';
   static const String updateProfile = '/user/profile';
   static const String changePassword = '/user/change-password';
+  static const String enableBiometric = '/user/enable-biometric';
 
-  // Plan endpoints
+  // Plan endpoints - FIXED: removed /user prefix
   static const String plans = '/plans';
   static const String purchasePlan = '/plans/{id}/purchase';
 
-  // Wallet endpoints
-  static const String deposits = '/payments/deposit';
+  // Payment endpoints
   static const String depositCoingate = '/payments/deposit/coingate';
   static const String depositUddoktapay = '/payments/deposit/uddoktapay';
   static const String depositManual = '/payments/deposit/manual';
+
+  // Withdrawal endpoints
   static const String withdrawals = '/withdrawals';
+
+  // Transaction endpoints
   static const String transactions = '/user/transactions';
 
-  // Task endpoints
+  // Task endpoints - FIXED: removed /user prefix
   static const String tasks = '/tasks';
   static const String completeTask = '/tasks/{id}/complete';
 
-  // Referral endpoints
+  // Referral endpoints - FIXED: removed /user prefix
   static const String referrals = '/referrals';
   static const String referralEarnings = '/referrals/earnings';
 
@@ -39,9 +43,17 @@ class ApiConstants {
   static const String kycSubmit = '/kyc/submit';
   static const String kycStatus = '/kyc/status';
 
-  // Notification endpoints
+  // Notification endpoints - FIXED: removed /user prefix
   static const String notifications = '/notifications';
   static const String unreadNotifications = '/notifications/unread-count';
   static const String markNotificationRead = '/notifications/{id}/read';
   static const String markAllNotificationsRead = '/notifications/mark-all-read';
+
+  // User notifications (alternative route)
+  static const String userNotifications = '/user/notifications';
+  static const String markUserNotificationRead =
+      '/user/notifications/{id}/read';
+
+  // App settings (public)
+  static const String appSettings = '/app-settings';
 }

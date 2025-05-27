@@ -62,8 +62,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Forgot Password')),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: const Text('Forgot Password'),
+        backgroundColor: theme.scaffoldBackgroundColor,
+        foregroundColor: theme.appBarTheme.foregroundColor,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -73,23 +79,30 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             children: [
               const SizedBox(height: 40),
 
-              const Icon(Icons.lock_reset, size: 80, color: Colors.blue),
+              Icon(
+                Icons.lock_reset,
+                size: 80,
+                color: theme.colorScheme.primary,
+              ),
 
               const SizedBox(height: 24),
 
               Text(
                 'Reset Your Password',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
 
               const SizedBox(height: 16),
 
-              const Text(
+              Text(
                 'Enter your email address and we\'ll send you instructions to reset your password.',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withOpacity(0.7),
+                ),
               ),
 
               const SizedBox(height: 32),
@@ -97,10 +110,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               // Email field
               TextFormField(
                 controller: _emailController,
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Email',
                   hintText: 'Enter your email',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  prefixIcon: Icon(
+                    Icons.email_outlined,
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
                 keyboardType: TextInputType.emailAddress,
                 validator: Validators.validateEmail,
@@ -122,7 +138,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
               TextButton(
                 onPressed: () => context.go('/login'),
-                child: const Text('Back to Login'),
+                child: Text(
+                  'Back to Login',
+                  style: TextStyle(color: theme.colorScheme.primary),
+                ),
               ),
             ],
           ),

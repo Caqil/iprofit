@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 class LoadingButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final Future<void> Function()? onPressed;
   final String text;
   final bool isLoading;
   final Color? backgroundColor;

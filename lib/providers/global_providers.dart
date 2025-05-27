@@ -40,7 +40,6 @@ final biometricServiceProvider = Provider<BiometricService>((ref) {
   return BiometricService(LocalAuthentication());
 });
 
-
 // App state providers
 final isLoadingProvider = StateProvider<bool>((ref) => false);
 final appErrorProvider = StateProvider<String?>((ref) => null);

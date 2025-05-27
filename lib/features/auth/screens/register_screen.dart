@@ -86,54 +86,88 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final isLoading = authState is AsyncLoading;
+    final theme = Theme.of(context);
 
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Form(
             key: _formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 40),
 
-                // Logo or app name
-                Center(
-                  child: Text(
-                    'Create Account',
-                    style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                // Logo and App Name
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.trending_up,
+                        color: theme.colorScheme.onPrimary,
+                        size: 20,
+                      ),
                     ),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Investment Pro',
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 60),
+
+                // Title
+                Text(
+                  'Create Account',
+                  style: theme.textTheme.headlineLarge?.copyWith(
+                    color: theme.colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Subtitle
+                Text(
+                  'Join us and start your investment journey',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: theme.colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
 
                 const SizedBox(height: 40),
 
                 // Name field
-                TextFormField(
+                _buildTextField(
                   controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'Full Name',
-                    hintText: 'Enter your full name',
-                    prefixIcon: Icon(Icons.person_outline),
-                  ),
-                  textCapitalization: TextCapitalization.words,
+                  label: 'Full Name',
+                  hint: 'Enter your full name',
+                  icon: Icons.person_outline,
                   validator: Validators.validateName,
                   textInputAction: TextInputAction.next,
+                  textCapitalization: TextCapitalization.words,
                 ),
 
                 const SizedBox(height: 16),
 
                 // Email field
-                TextFormField(
+                _buildTextField(
                   controller: _emailController,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Enter your email',
-                    prefixIcon: Icon(Icons.email_outlined),
-                  ),
+                  label: 'Email',
+                  hint: 'Enter your email',
+                  icon: Icons.email_outlined,
                   keyboardType: TextInputType.emailAddress,
                   validator: Validators.validateEmail,
                   textInputAction: TextInputAction.next,
@@ -142,13 +176,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 16),
 
                 // Phone field
-                TextFormField(
+                _buildTextField(
                   controller: _phoneController,
-                  decoration: const InputDecoration(
-                    labelText: 'Phone Number',
-                    hintText: 'Enter your phone number',
-                    prefixIcon: Icon(Icons.phone_outlined),
-                  ),
+                  label: 'Phone Number',
+                  hint: 'Enter your phone number',
+                  icon: Icons.phone_outlined,
                   keyboardType: TextInputType.phone,
                   validator: Validators.validatePhone,
                   textInputAction: TextInputAction.next,
@@ -157,52 +189,37 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 16),
 
                 // Password field
-                TextFormField(
+                _buildTextField(
                   controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'Password',
-                    hintText: 'Enter your password',
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
+                  label: 'Password',
+                  hint: 'Enter your password',
+                  icon: Icons.lock_outlined,
                   obscureText: _obscurePassword,
                   validator: Validators.validatePassword,
                   textInputAction: TextInputAction.next,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
                 ),
 
                 const SizedBox(height: 16),
 
                 // Confirm password field
-                TextFormField(
+                _buildTextField(
                   controller: _confirmPasswordController,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm Password',
-                    hintText: 'Confirm your password',
-                    prefixIcon: const Icon(Icons.lock_outlined),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility_off
-                            : Icons.visibility,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                  ),
+                  label: 'Confirm Password',
+                  hint: 'Confirm your password',
+                  icon: Icons.lock_outlined,
                   obscureText: _obscureConfirmPassword,
                   validator: (value) {
                     if (value != _passwordController.text) {
@@ -211,18 +228,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     return null;
                   },
                   textInputAction: TextInputAction.next,
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                      color: theme.colorScheme.onSurface.withOpacity(0.7),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscureConfirmPassword = !_obscureConfirmPassword;
+                      });
+                    },
+                  ),
                 ),
 
                 const SizedBox(height: 16),
 
                 // Referral code field (optional)
-                TextFormField(
+                _buildTextField(
                   controller: _referralCodeController,
-                  decoration: const InputDecoration(
-                    labelText: 'Referral Code (Optional)',
-                    hintText: 'Enter referral code if you have one',
-                    prefixIcon: Icon(Icons.group_outlined),
-                  ),
+                  label: 'Referral Code (Optional)',
+                  hint: 'Enter referral code if you have one',
+                  icon: Icons.group_outlined,
                   textCapitalization: TextCapitalization.characters,
                   textInputAction: TextInputAction.done,
                 ),
@@ -239,6 +267,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           _termsAccepted = value!;
                         });
                       },
+                      fillColor: MaterialStateProperty.resolveWith((states) {
+                        if (states.contains(MaterialState.selected)) {
+                          return theme.colorScheme.primary;
+                        }
+                        return theme.colorScheme.outline;
+                      }),
                     ),
                     Expanded(
                       child: GestureDetector(
@@ -250,12 +284,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         child: RichText(
                           text: TextSpan(
                             text: 'I agree to the ',
-                            style: TextStyle(color: Colors.grey[800]),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurface.withOpacity(
+                                0.7,
+                              ),
+                            ),
                             children: [
                               TextSpan(
                                 text: 'Terms & Conditions',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -263,7 +301,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               TextSpan(
                                 text: 'Privacy Policy',
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -278,30 +316,112 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 const SizedBox(height: 24),
 
                 // Register button
-                LoadingButton(
-                  onPressed: _register,
-                  isLoading: isLoading,
-                  text: 'Register',
+                SizedBox(
+                  width: double.infinity,
+                  child: LoadingButton(
+                    onPressed: _register,
+                    isLoading: isLoading,
+                    text: 'Register',
+                  ),
                 ),
 
                 const SizedBox(height: 16),
 
                 // Login link
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Already have an account?'),
-                    TextButton(
-                      onPressed: () => context.go('/login'),
-                      child: const Text('Login'),
-                    ),
-                  ],
+                Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Already have an account?',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => context.go('/login'),
+                        child: Text(
+                          'Login',
+                          style: TextStyle(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+    String? Function(String?)? validator,
+    TextInputAction? textInputAction,
+    Widget? suffixIcon,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+  }) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          obscureText: obscureText,
+          validator: validator,
+          textInputAction: textInputAction,
+          textCapitalization: textCapitalization,
+          style: TextStyle(color: theme.colorScheme.onSurface),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: theme.colorScheme.onSurface.withOpacity(0.5),
+            ),
+            prefixIcon: Icon(
+              icon,
+              color: theme.colorScheme.onSurface.withOpacity(0.7),
+            ),
+            suffixIcon: suffixIcon,
+            filled: true,
+            fillColor: theme.colorScheme.surface,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: theme.colorScheme.outline),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: theme.colorScheme.primary,
+                width: 2,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

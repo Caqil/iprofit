@@ -29,7 +29,34 @@ class Task extends Equatable {
     required this.isCompleted,
   });
 
-  factory Task.fromJson(Map<String, dynamic> json) => _$TaskFromJson(json);
+  // Manual fromJson to handle potential nulls and invalid data
+  factory Task.fromJson(Map<String, dynamic> json) {
+    TaskType parseTaskType(dynamic value) {
+      if (value is String) {
+        try {
+          return TaskType.values.firstWhere(
+            (e) => e.toString() == 'TaskType.$value' || e.name == value,
+            orElse: () => TaskType.follow,
+          );
+        } catch (_) {
+          return TaskType.follow;
+        }
+      }
+      return TaskType.follow;
+    }
+
+    return Task(
+      id: json['id'] is num ? (json['id'] as num).toInt() : 0,
+      name: json['name'] as String? ?? '',
+      description: json['description'] as String? ?? '',
+      taskType: parseTaskType(json['task_type']),
+      taskUrl: json['task_url'] as String?,
+      isMandatory: json['is_mandatory'] as bool? ?? false,
+      isCompleted: json['is_completed'] as bool? ?? false,
+    );
+  }
+
+  // We'll still use the generated toJson for convenience
   Map<String, dynamic> toJson() => _$TaskToJson(this);
 
   @override

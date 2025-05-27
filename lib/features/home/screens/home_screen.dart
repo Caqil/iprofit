@@ -2,10 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/home_provider.dart';
-import '../widgets/balance_card.dart';
-import '../widgets/profit_chart.dart';
-import '../widgets/quick_actions.dart';
-import '../widgets/recent_transactions.dart';
+import '../widgets/user_header_card.dart';
+import '../widgets/balance_summary_card.dart';
+import '../widgets/action_buttons_row.dart';
+import '../widgets/income_chart_card.dart';
+import '../widgets/referral_leaderboard_card.dart';
+import '../widgets/tasks_progress_card.dart';
+import '../widgets/todays_log_card.dart';
 import '../../../shared/widgets/error_widget.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -14,8 +17,9 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final homeState = ref.watch(homeProvider);
-
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(homeProvider.future),
         child: homeState.when(
@@ -25,44 +29,43 @@ class HomeScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // User greeting
-                  Text(
-                    'Hello, ${homeData['user'].name}',
-                    style: Theme.of(context).textTheme.headlineSmall,
+                  // User Header with profile pic and welcome message
+                  UserHeaderCard(user: homeData['user']),
+                  const SizedBox(height: 20),
+
+                  // Balance Summary Card
+                  BalanceSummaryCard(
+                    user: homeData['user'],
+                    profitData: homeData['profitData'],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Welcome back to your investment dashboard',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
-                  ),
+                  const SizedBox(height: 20),
+
+                  // Action Buttons Row
+                  const ActionButtonsRow(),
                   const SizedBox(height: 24),
 
-                  // Balance card
-                  BalanceCard(
-                    balance: homeData['user'].balance,
-                    isKycVerified: homeData['user'].isKycVerified,
-                  ),
-                  const SizedBox(height: 24),
+                  // Income Graph
+                  IncomeChartCard(profitData: homeData['profitData']),
+                  const SizedBox(height: 20),
 
-                  // Quick actions
-                  const QuickActions(),
-                  const SizedBox(height: 24),
+                  // Referral Leaderboard
+                  const ReferralLeaderboardCard(),
+                  const SizedBox(height: 20),
 
-                  // Profit chart
-                  ProfitChart(profitData: homeData['profitData']),
-                  const SizedBox(height: 24),
+                  // Today's Tasks
+                  const TasksProgressCard(),
+                  const SizedBox(height: 20),
 
-                  // Recent transactions
-                  RecentTransactions(
-                    transactions: homeData['recentTransactions'],
-                  ),
+                  // Today's Log
+                  TodaysLogCard(transactions: homeData['recentTransactions']),
+                  const SizedBox(height: 20),
                 ],
               ),
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF00D4AA)),
+          ),
           error: (error, stackTrace) => CustomErrorWidget(
             error: error.toString(),
             onRetry: () => ref.refresh(homeProvider.future),

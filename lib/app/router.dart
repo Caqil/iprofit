@@ -1,4 +1,4 @@
-// lib/app/router.dart - Updated with onboarding logic
+// lib/app/router.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,47 +25,10 @@ import '../features/notifications/screens/notifications_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../core/constants/onboarding_constants.dart';
-import '../core/services/storage_service.dart' hide storageServiceProvider;
-import '../providers/global_providers.dart';
+import '../core/services/storage_service.dart';
+import '../providers/global_providers.dart' as storageServiceProvider;
 
-final authStateChangesProvider = StreamProvider<bool>((ref) {
-  // Create a controller to emit values
-  final controller = StreamController<bool>();
-
-  // Watch the auth provider and emit a value whenever it changes
-  final subscription = ref.listen(authProvider, (_, state) {
-    controller.add(state.valueOrNull != null);
-  });
-
-  // Close the controller when the provider is disposed
-  ref.onDispose(() {
-    subscription.close();
-    controller.close();
-  });
-
-  // Initial value
-  controller.add(ref.read(authProvider).valueOrNull != null);
-
-  return controller.stream;
-});
-
-/// Custom RefreshStream implementation to force GoRouter to refresh on auth changes
-class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<dynamic> stream) {
-    notifyListeners(); // Initial notification
-    _subscription = stream.asBroadcastStream().listen((_) => notifyListeners());
-  }
-
-  late final StreamSubscription<dynamic> _subscription;
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
-  }
-}
-
-// Define route names as constants for type safety
+// Define route names as constants
 class AppRoutes {
   static const String onboarding = '/onboarding';
   static const String login = '/login';
@@ -89,58 +52,103 @@ class AppRoutes {
   static const String notifications = '/notifications';
 }
 
+// Router Notifier to handle auth state changes safely
+class RouterNotifier extends ChangeNotifier {
+  RouterNotifier(this._ref) {
+    _ref.listen<AsyncValue<bool>>(
+      _authStateListenable,
+      (_, __) => notifyListeners(),
+    );
+  }
+
+  final Ref _ref;
+
+  // Simple boolean state provider to avoid dependency issues
+  final _authStateListenable = StateProvider<AsyncValue<bool>>((ref) {
+    return ref.watch(authProvider).whenData((user) => user != null);
+  });
+
+  // Safe way to get auth state
+  bool get isLoggedIn {
+    final authState = _ref.read(_authStateListenable);
+    return authState.valueOrNull ?? false;
+  }
+
+  // Safe way to get onboarding state
+  bool get hasCompletedOnboarding {
+    final storageService = _ref.read(
+      storageServiceProvider.storageServiceProvider,
+    );
+    return storageService.getBool(OnboardingConstants.hasCompletedOnboarding) ??
+        false;
+  }
+
+  String? redirect(BuildContext context, GoRouterState state) {
+    final isLoggedIn = this.isLoggedIn;
+    final hasCompletedOnboarding = this.hasCompletedOnboarding;
+
+    // Define auth routes
+    final isAuthRoute = [
+      AppRoutes.login,
+      AppRoutes.register,
+      AppRoutes.verifyEmail,
+      AppRoutes.forgotPassword,
+    ].contains(state.uri.path);
+
+    final isOnboardingRoute = state.uri.path == AppRoutes.onboarding;
+
+    // If onboarding is not completed, redirect to onboarding
+    if (!hasCompletedOnboarding && !isOnboardingRoute) {
+      return AppRoutes.onboarding;
+    }
+
+    // If onboarding is completed but not logged in, redirect to login for protected routes
+    if (hasCompletedOnboarding && !isLoggedIn && !isAuthRoute) {
+      return AppRoutes.login;
+    }
+
+    // If logged in but on auth route, redirect to home
+    if (isLoggedIn && isAuthRoute) {
+      return AppRoutes.home;
+    }
+
+    // If onboarding is completed and trying to access onboarding, redirect to appropriate page
+    if (hasCompletedOnboarding && isOnboardingRoute) {
+      return isLoggedIn ? AppRoutes.home : AppRoutes.login;
+    }
+
+    // No redirection needed
+    return null;
+  }
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final refreshListenable = GoRouterRefreshStream(
-    ref.watch(authStateChangesProvider.stream),
-  );
+  final notifier = RouterNotifier(ref);
+
   return GoRouter(
     initialLocation: AppRoutes.home,
-    debugLogDiagnostics: true, // Enable for easier debugging
-    refreshListenable:
-        refreshListenable, // Add this to force router refresh on auth changes
-    redirect: (context, state) {
-      final authStateValue = ref.read(authProvider);
-      final isLoggedIn = authStateValue.valueOrNull != null;
-
-      // Get onboarding status
-      final storageService = ref.read(storageServiceProvider);
-      final hasCompletedOnboarding =
-          storageService.getBool(OnboardingConstants.hasCompletedOnboarding) ??
-          false;
-
-      final isAuthRoute = [
-        AppRoutes.login,
-        AppRoutes.register,
-        AppRoutes.verifyEmail,
-        AppRoutes.forgotPassword,
-      ].contains(state.uri.path);
-
-      final isOnboardingRoute = state.uri.path == AppRoutes.onboarding;
-
-      // If onboarding is not completed, redirect to onboarding
-      if (!hasCompletedOnboarding && !isOnboardingRoute) {
-        return AppRoutes.onboarding;
-      }
-
-      // If onboarding is completed but not logged in, redirect to login
-      if (hasCompletedOnboarding && !isLoggedIn && !isAuthRoute) {
-        return AppRoutes.login;
-      }
-
-      // If logged in but on auth route, redirect to home
-      if (isLoggedIn && isAuthRoute) {
-        return AppRoutes.home;
-      }
-
-      // If onboarding is completed and trying to access onboarding, redirect to appropriate page
-      if (hasCompletedOnboarding && isOnboardingRoute) {
-        return isLoggedIn ? AppRoutes.home : AppRoutes.login;
-      }
-
-      return null;
-    },
-    errorBuilder: (context, state) =>
-        Scaffold(body: Center(child: Text('Page not found: ${state.uri}'))),
+    debugLogDiagnostics: true,
+    refreshListenable: notifier,
+    redirect: notifier.redirect,
+    // Error handling
+    errorBuilder: (context, state) => Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Page not found: ${state.uri.path}',
+              style: const TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => context.go(AppRoutes.home),
+              child: const Text('Go to Home'),
+            ),
+          ],
+        ),
+      ),
+    ),
     routes: [
       // Onboarding route
       GoRoute(
@@ -160,8 +168,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.verifyEmail,
         builder: (context, state) {
-          final email = state.uri.queryParameters['email'] ?? '';
-          return VerifyEmailScreen(email: email);
+          final email = state.extra is Map
+              ? (state.extra as Map)['email'] as String?
+              : null;
+          return VerifyEmailScreen(email: email ?? '');
         },
       ),
       GoRoute(

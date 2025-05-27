@@ -15,7 +15,7 @@ class ApiClient {
     Map<String, dynamic>? queryParams,
   }) async {
     final response = await _dio.get(
-      '$baseUrl/$path',
+      '$baseUrl$path',
       queryParameters: queryParams,
     );
     return response.data as Map<String, dynamic>;
@@ -25,7 +25,7 @@ class ApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await _dio.post('$baseUrl/$path', data: body);
+    final response = await _dio.post('$baseUrl$path', data: body);
     return response.data as Map<String, dynamic>;
   }
 
@@ -33,7 +33,7 @@ class ApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await _dio.put('$baseUrl/$path', data: body);
+    final response = await _dio.put('$baseUrl$path', data: body);
     return response.data as Map<String, dynamic>;
   }
 
@@ -41,7 +41,7 @@ class ApiClient {
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await _dio.patch('$baseUrl/$path', data: body);
+    final response = await _dio.patch('$baseUrl$path', data: body);
     return response.data as Map<String, dynamic>;
   }
 
@@ -49,7 +49,7 @@ class ApiClient {
     String path, {
     Map<String, dynamic>? body,
   }) async {
-    final response = await _dio.delete('$baseUrl/$path', data: body);
+    final response = await _dio.delete('$baseUrl$path', data: body);
     return response.data as Map<String, dynamic>;
   }
 
@@ -83,13 +83,17 @@ class ApiClient {
     return put(ApiConstants.changePassword, body);
   }
 
-  // Plan endpoints
+  Future<Map<String, dynamic>> enableBiometric() async {
+    return post(ApiConstants.enableBiometric, {});
+  }
+
+  // Plan endpoints - FIXED
   Future<Map<String, dynamic>> getPlans() async {
     return get(ApiConstants.plans);
   }
 
   Future<Map<String, dynamic>> purchasePlan(int id) async {
-    return post('${ApiConstants.plans}/$id/purchase', {});
+    return post('/plans/$id/purchase', {});
   }
 
   // Deposit endpoints
@@ -123,20 +127,27 @@ class ApiClient {
   }
 
   // Transaction endpoints
-  Future<Map<String, dynamic>> getTransactions() async {
-    return get(ApiConstants.transactions);
+  Future<Map<String, dynamic>> getTransactions({
+    int? limit,
+    int? offset,
+  }) async {
+    final queryParams = <String, dynamic>{};
+    if (limit != null) queryParams['limit'] = limit;
+    if (offset != null) queryParams['offset'] = offset;
+
+    return get(ApiConstants.transactions, queryParams: queryParams);
   }
 
-  // Task endpoints
+  // Task endpoints - FIXED
   Future<Map<String, dynamic>> getTasks() async {
     return get(ApiConstants.tasks);
   }
 
   Future<Map<String, dynamic>> completeTask(int id) async {
-    return post('${ApiConstants.completeTask}/$id', {});
+    return post('/tasks/$id/complete', {});
   }
 
-  // Referral endpoints
+  // Referral endpoints - FIXED
   Future<Map<String, dynamic>> getReferrals() async {
     return get(ApiConstants.referrals);
   }
@@ -154,9 +165,16 @@ class ApiClient {
     return get(ApiConstants.kycStatus);
   }
 
-  // Notification endpoints
-  Future<Map<String, dynamic>> getNotifications() async {
-    return get(ApiConstants.notifications);
+  // Notification endpoints - FIXED
+  Future<Map<String, dynamic>> getNotifications({
+    int? limit,
+    int? offset,
+  }) async {
+    final queryParams = <String, dynamic>{};
+    if (limit != null) queryParams['limit'] = limit;
+    if (offset != null) queryParams['offset'] = offset;
+
+    return get(ApiConstants.notifications, queryParams: queryParams);
   }
 
   Future<Map<String, dynamic>> getUnreadNotificationsCount() async {
@@ -164,10 +182,31 @@ class ApiClient {
   }
 
   Future<Map<String, dynamic>> markNotificationAsRead(int id) async {
-    return put('${ApiConstants.markNotificationRead}/$id', {});
+    return put('/notifications/$id/read', {});
   }
 
   Future<Map<String, dynamic>> markAllNotificationsAsRead() async {
     return put(ApiConstants.markAllNotificationsRead, {});
+  }
+
+  // User notifications (alternative route from Go)
+  Future<Map<String, dynamic>> getUserNotifications({
+    int? limit,
+    int? offset,
+  }) async {
+    final queryParams = <String, dynamic>{};
+    if (limit != null) queryParams['limit'] = limit;
+    if (offset != null) queryParams['offset'] = offset;
+
+    return get(ApiConstants.userNotifications, queryParams: queryParams);
+  }
+
+  Future<Map<String, dynamic>> markUserNotificationAsRead(int id) async {
+    return put('/user/notifications/$id/read', {});
+  }
+
+  // App settings (public endpoint)
+  Future<Map<String, dynamic>> getAppSettings() async {
+    return get(ApiConstants.appSettings);
   }
 }

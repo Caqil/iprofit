@@ -175,13 +175,13 @@ class _KycScreenState extends ConsumerState<KycScreen> {
               style: Theme.of(context).textTheme.bodyLarge,
             ),
             const SizedBox(height: 32),
-            if (status == 'rejected')
-              LoadingButton(
-                onPressed: () {
-                  ref.invalidate(kycProvider);
-                },
-                text: 'Submit New Documents',
-              ),
+            // if (status == 'rejected')
+            //   LoadingButton(
+            //     onPressed: () {
+            //       ref.invalidate(kycProvider);
+            //     },
+            //     text: 'Submit New Documents',
+            //   ),
           ],
         ),
       ),
