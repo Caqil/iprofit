@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Define colors optimized for an investment app
-  static const Color primaryColor = Color(
-    0xFF00695C,
+  static const Color primaryColor = Color.fromARGB(
+    255,
+    13,
+    193,
+    172,
   ); // Deep teal for trust and stability
   static const Color secondaryColor = Color(
     0xFFF4D03F,

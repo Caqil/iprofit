@@ -27,13 +27,20 @@ class TasksProgressCard extends ConsumerWidget {
     final progressPercentage = totalTasks > 0
         ? (completedTasks / totalTasks) * 100
         : 0.0;
-
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF3A3A3A), width: 1),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [theme.canvasColor, theme.primaryColor.withOpacity(0.1)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.disabledColor.withOpacity(0.1),
+          width: 1.0,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

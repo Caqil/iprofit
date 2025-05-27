@@ -19,13 +19,20 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
   @override
   Widget build(BuildContext context) {
     final filteredData = _getFilteredData();
-
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF3A3A3A), width: 1),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [theme.canvasColor, theme.primaryColor.withOpacity(0.1)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.disabledColor.withOpacity(0.1),
+          width: 1.0,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,11 +59,7 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
                   const SizedBox(width: 8),
                   const Text(
                     'Income Graph',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -64,9 +67,9 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
                 onPressed: () {
                   // Show detailed graph or analytics
                 },
-                child: const Text(
+                child: Text(
                   '7d',
-                  style: TextStyle(color: Color(0xFF00D4AA), fontSize: 12),
+                  style: TextStyle(color: theme.primaryColor, fontSize: 12),
                 ),
               ),
             ],
@@ -78,10 +81,7 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
             height: 150,
             child: filteredData.isEmpty
                 ? const Center(
-                    child: Text(
-                      'No data available',
-                      style: TextStyle(color: Color(0xFF8E8E8E)),
-                    ),
+                    child: Text('No data available', style: TextStyle()),
                   )
                 : LineChart(_createChartData()),
           ),
@@ -91,15 +91,7 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                .map(
-                  (day) => Text(
-                    day,
-                    style: const TextStyle(
-                      color: Color(0xFF8E8E8E),
-                      fontSize: 10,
-                    ),
-                  ),
-                )
+                .map((day) => Text(day, style: const TextStyle(fontSize: 10)))
                 .toList(),
           ),
         ],

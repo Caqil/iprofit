@@ -27,12 +27,20 @@ class ReferralLeaderboardCard extends ConsumerWidget {
     BuildContext context,
     List<ReferralLeaderboardItem> leaderboard,
   ) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF3A3A3A), width: 1),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [theme.canvasColor, theme.primaryColor.withOpacity(0.1)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.disabledColor.withOpacity(0.1),
+          width: 1.0,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -201,20 +209,21 @@ class _LeaderboardItem extends StatelessWidget {
       }
     }
 
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isCurrentUser
-            ? const Color(0xFF00D4AA).withOpacity(0.1)
-            : const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(12),
-        border: isCurrentUser
-            ? Border.all(
-                color: const Color(0xFF00D4AA).withOpacity(0.3),
-                width: 1,
-              )
-            : null,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [theme.canvasColor, theme.primaryColor.withOpacity(0.1)],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: theme.disabledColor.withOpacity(0.1),
+          width: 1.0,
+        ),
       ),
       child: Row(
         children: [

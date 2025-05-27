@@ -151,6 +151,7 @@ class _GlassActionButtonState extends State<_GlassActionButton>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTapDown: (_) {
         setState(() {
@@ -194,8 +195,8 @@ class _GlassActionButtonState extends State<_GlassActionButton>
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  const Color(0xFF2A2A2A).withOpacity(0.7),
-                  const Color(0xFF1A1A1A).withOpacity(0.6),
+                  theme.canvasColor,
+                  theme.primaryColor.withOpacity(0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(16),
