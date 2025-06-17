@@ -4,7 +4,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../repositories/auth_repository.dart';
-import '../../profile/repositories/user_repository.dart';
+import '../../profile/repositories/profile_repository.dart';
 import '../../../models/user.dart';
 import '../../../providers/global_providers.dart';
 import '../../../core/services/device_service.dart' as deviceServiceProvider;
@@ -20,8 +20,8 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 // User repository provider for profile management
-final userRepositoryProvider = Provider<UserRepository>((ref) {
-  return UserRepository(apiClient: ref.watch(apiClientProvider));
+final userRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 // Auth state provider
@@ -43,7 +43,7 @@ class Auth extends _$Auth {
 
     try {
       // Fetch user profile
-      final user = await ref.read(userRepositoryProvider).getProfile();
+      final user = await ref.read(userRepositoryProvider).getUserProfile();
       return user;
     } catch (e) {
       // If error fetching profile, logout and return null
@@ -143,7 +143,7 @@ class Auth extends _$Auth {
 
     state = const AsyncLoading();
     try {
-      final user = await ref.read(userRepositoryProvider).getProfile();
+      final user = await ref.read(userRepositoryProvider).getUserProfile();
       state = AsyncData(user);
     } catch (e) {
       await logout();

@@ -1,5 +1,5 @@
 // lib/features/profile/providers/profile_provider.dart
-import 'package:app/features/profile/repositories/user_repository.dart' show UserRepository;
+import 'package:app/features/profile/repositories/profile_repository.dart' show ProfileRepository;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../models/user.dart';
 import '../../../providers/global_providers.dart' hide biometricServiceProvider;
@@ -8,15 +8,15 @@ import '../../../core/constants/storage_keys.dart';
 
 part 'profile_provider.g.dart';
 
-final profileRepositoryProvider = Provider<UserRepository>((ref) {
-  return UserRepository(apiClient: ref.watch(apiClientProvider));
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepository(apiClient: ref.watch(apiClientProvider));
 });
 
 @riverpod
 class Profile extends _$Profile {
   @override
   Future<User> build() async {
-    return ref.watch(profileRepositoryProvider).getProfile();
+    return ref.watch(profileRepositoryProvider).getUserProfile();
   }
 
   Future<void> updateProfile(

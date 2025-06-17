@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/theme.dart';
 import '../providers/home_provider.dart';
 
 class TasksProgressCard extends ConsumerWidget {
@@ -80,7 +81,7 @@ class TasksProgressCard extends ConsumerWidget {
                 child: Text(
                   '$completedTasks/$totalTasks',
                   style: const TextStyle(
-                    color: Color(0xFF00D4AA),
+                    color: AppTheme.primaryColor,
                     fontSize: 12,
                   ),
                 ),
@@ -143,7 +144,7 @@ class TasksProgressCard extends ConsumerWidget {
                       strokeWidth: 6,
                       backgroundColor: Colors.transparent,
                       valueColor: const AlwaysStoppedAnimation<Color>(
-                        Color(0xFF00D4AA),
+                        AppTheme.primaryColor,
                       ),
                     ),
                   ),
@@ -203,8 +204,8 @@ class TasksProgressCard extends ConsumerWidget {
           Icon(
             isAllCompleted ? Icons.check_circle : Icons.info_outline,
             color: isAllCompleted
-                ? const Color(0xFF00D4AA)
-                : const Color(0xFF00D4AA),
+                ? AppTheme.primaryColor
+                : AppTheme.primaryColor,
             size: 16,
           ),
           const SizedBox(width: 8),
@@ -220,7 +221,7 @@ class TasksProgressCard extends ConsumerWidget {
             const Text(
               '+20% Bonus',
               style: TextStyle(
-                color: Color(0xFF00D4AA),
+                color: AppTheme.primaryColor,
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
@@ -268,7 +269,7 @@ class TasksProgressCard extends ConsumerWidget {
       ),
       height: 200,
       child: const Center(
-        child: CircularProgressIndicator(color: Color(0xFF00D4AA)),
+        child: CircularProgressIndicator(color: AppTheme.primaryColor),
       ),
     );
   }
@@ -324,7 +325,7 @@ class _TaskItem extends StatelessWidget {
             height: 16,
             decoration: BoxDecoration(
               color: isCompleted
-                  ? const Color(0xFF00D4AA)
+                  ? AppTheme.primaryColor
                   : const Color(0xFF3A3A3A),
               shape: BoxShape.circle,
             ),
@@ -373,7 +374,7 @@ class _TaskItem extends StatelessWidget {
             status,
             style: TextStyle(
               color: isCompleted
-                  ? const Color(0xFF00D4AA)
+                  ? AppTheme.primaryColor
                   : const Color(0xFF8E8E8E),
               fontSize: 10,
               fontWeight: FontWeight.w500,

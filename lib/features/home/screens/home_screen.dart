@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart'; // Add this import
+import '../../../app/theme.dart';
 import '../providers/home_provider.dart';
 import '../widgets/balance_summary_card.dart';
 import '../widgets/action_buttons_row.dart';
@@ -62,7 +63,7 @@ class HomeScreen extends ConsumerWidget {
                   child: Container(
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00D4AA),
+                      color: AppTheme.primaryColor,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     constraints: const BoxConstraints(
@@ -82,7 +83,7 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
-        color: const Color(0xFF00D4AA),
+        color: AppTheme.primaryColor,
         onRefresh: () => ref.refresh(homeProvider.future),
         child: homeState.when(
           data: (homeData) {
@@ -112,7 +113,7 @@ class HomeScreen extends ConsumerWidget {
           height: 40,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: const Color(0xFF00D4AA), width: 2),
+            border: Border.all(color: AppTheme.primaryColor, width: 2),
           ),
           child: CircleAvatar(
             radius: 18,
@@ -151,12 +152,16 @@ class HomeScreen extends ConsumerWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.diamond, color: Color(0xFF00D4AA), size: 12),
+                  const Icon(
+                    Icons.diamond,
+                    color: AppTheme.primaryColor,
+                    size: 12,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     user.isKycVerified ? 'Premium Member' : 'Standard Member',
                     style: const TextStyle(
-                      color: Color(0xFF00D4AA),
+                      color: AppTheme.primaryColor,
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
                     ),

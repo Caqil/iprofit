@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/theme.dart';
 import '../providers/home_provider.dart';
 
 class ReferralLeaderboardCard extends ConsumerWidget {
@@ -79,7 +80,7 @@ class ReferralLeaderboardCard extends ConsumerWidget {
                 onPressed: () => context.push('/referrals'),
                 child: const Text(
                   'See More',
-                  style: TextStyle(color: Color(0xFF00D4AA), fontSize: 12),
+                  style: TextStyle(color: AppTheme.primaryColor, fontSize: 12),
                 ),
               ),
             ],
@@ -146,7 +147,7 @@ class ReferralLeaderboardCard extends ConsumerWidget {
       ),
       height: 200,
       child: const Center(
-        child: CircularProgressIndicator(color: Color(0xFF00D4AA)),
+        child: CircularProgressIndicator(color: AppTheme.primaryColor),
       ),
     );
   }
@@ -257,7 +258,7 @@ class _LeaderboardItem extends StatelessWidget {
               shape: BoxShape.circle,
               border: Border.all(
                 color: isCurrentUser
-                    ? const Color(0xFF00D4AA)
+                    ? AppTheme.primaryColor
                     : Colors.transparent,
                 width: 2,
               ),
@@ -283,9 +284,7 @@ class _LeaderboardItem extends StatelessWidget {
                 Text(
                   name,
                   style: TextStyle(
-                    color: isCurrentUser
-                        ? const Color(0xFF00D4AA)
-                        : Colors.white,
+                    color: isCurrentUser ? AppTheme.primaryColor : Colors.white,
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
                   ),
@@ -306,7 +305,7 @@ class _LeaderboardItem extends StatelessWidget {
           Text(
             amount,
             style: const TextStyle(
-              color: Color(0xFF00D4AA),
+              color: AppTheme.primaryColor,
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),

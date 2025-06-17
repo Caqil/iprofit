@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:ui';
 
+import '../../../app/theme.dart';
+
 class ActionButtonsRow extends StatefulWidget {
   const ActionButtonsRow({super.key});
 
@@ -38,7 +40,7 @@ class _ActionButtonsRowState extends State<ActionButtonsRow>
           icon: Icons.add_circle_outline,
           label: 'Deposit',
           subtitle: 'Add funds',
-          color: const Color(0xFF00D4AA),
+          color:  AppTheme.primaryColor,
           onTap: () => context.push('/deposit'),
           delay: 0.0,
         ),

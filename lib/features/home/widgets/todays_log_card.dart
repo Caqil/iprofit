@@ -1,6 +1,7 @@
 // lib/features/home/widgets/todays_log_card.dart
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import '../../../app/theme.dart';
 import '../../../models/transaction.dart';
 import '../../../core/enums/transaction_type.dart';
 import '../../../core/utils/formatters.dart';
@@ -41,12 +42,12 @@ class TodaysLogCard extends StatelessWidget {
                     width: 20,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00D4AA).withOpacity(0.2),
+                      color: AppTheme.primaryColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Icon(
                       Icons.history,
-                      color: Color(0xFF00D4AA),
+                      color: AppTheme.primaryColor,
                       size: 12,
                     ),
                   ),
@@ -65,7 +66,7 @@ class TodaysLogCard extends StatelessWidget {
                 onPressed: () => context.push('/transactions'),
                 child: const Text(
                   'See All',
-                  style: TextStyle(color: Color(0xFF00D4AA), fontSize: 12),
+                  style: TextStyle(color: AppTheme.primaryColor, fontSize: 12),
                 ),
               ),
             ],
@@ -155,7 +156,7 @@ class _LogItem extends StatelessWidget {
             '${isPositive ? '+' : '-'}${Formatters.formatCurrency(transaction.amount)}',
             style: TextStyle(
               color: isPositive
-                  ? const Color(0xFF00D4AA)
+                  ? AppTheme.primaryColor
                   : const Color(0xFFFF6B6B),
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -169,7 +170,7 @@ class _LogItem extends StatelessWidget {
   (IconData, Color, String) _getTransactionDisplayData() {
     switch (transaction.type) {
       case TransactionType.deposit:
-        return (Icons.add_circle_outline, const Color(0xFF00D4AA), 'Deposit');
+        return (Icons.add_circle_outline, AppTheme.primaryColor, 'Deposit');
       case TransactionType.withdrawal:
         return (
           Icons.arrow_circle_up_outlined,
@@ -191,7 +192,7 @@ class _LogItem extends StatelessWidget {
           'Plan Purchase',
         );
       case TransactionType.referralProfit:
-        return (Icons.trending_up, const Color(0xFF00D4AA), 'Referral Profit');
+        return (Icons.trending_up, AppTheme.primaryColor, 'Referral Profit');
       default:
         return (Icons.swap_horiz, const Color(0xFF8E8E8E), 'Transaction');
     }

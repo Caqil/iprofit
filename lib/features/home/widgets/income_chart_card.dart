@@ -1,6 +1,7 @@
 // lib/features/home/widgets/income_chart_card.dart
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../../app/theme.dart';
 import '../providers/home_provider.dart';
 import 'dart:math' as math;
 
@@ -47,12 +48,12 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
                     width: 20,
                     height: 20,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00D4AA).withOpacity(0.2),
+                      color: AppTheme.primaryColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: const Icon(
                       Icons.trending_up,
-                      color: Color(0xFF00D4AA),
+                      color: AppTheme.primaryColor,
                       size: 12,
                     ),
                   ),
@@ -128,7 +129,7 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
         LineChartBarData(
           spots: _generateSpots(data),
           isCurved: true,
-          color: const Color(0xFF00D4AA),
+          color: AppTheme.primaryColor,
           barWidth: 3,
           isStrokeCapRound: true,
           dotData: FlDotData(
@@ -136,7 +137,7 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
             getDotPainter: (spot, percent, barData, index) {
               return FlDotCirclePainter(
                 radius: 4,
-                color: const Color(0xFF00D4AA),
+                color: AppTheme.primaryColor,
                 strokeWidth: 0,
               );
             },
@@ -145,8 +146,8 @@ class _IncomeChartCardState extends State<IncomeChartCard> {
             show: true,
             gradient: LinearGradient(
               colors: [
-                const Color(0xFF00D4AA).withOpacity(0.3),
-                const Color(0xFF00D4AA).withOpacity(0.0),
+                AppTheme.primaryColor.withOpacity(0.3),
+                AppTheme.primaryColor.withOpacity(0.0),
               ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,

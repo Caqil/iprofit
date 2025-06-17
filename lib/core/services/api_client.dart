@@ -1,4 +1,4 @@
-// lib/core/services/api_client.dart
+// lib/core/services/api_client.dart - UPDATED VERSION
 import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 
@@ -87,7 +87,17 @@ class ApiClient {
     return post(ApiConstants.enableBiometric, {});
   }
 
-  // Plan endpoints - FIXED
+  // NEW: Disable biometric endpoint
+  Future<Map<String, dynamic>> disableBiometric() async {
+    return put('/user/disable-biometric', {});
+  }
+
+  // NEW: Delete account endpoint
+  Future<Map<String, dynamic>> deleteAccount() async {
+    return delete('/user/profile');
+  }
+
+  // Plan endpoints
   Future<Map<String, dynamic>> getPlans() async {
     return get(ApiConstants.plans);
   }
@@ -138,7 +148,7 @@ class ApiClient {
     return get(ApiConstants.transactions, queryParams: queryParams);
   }
 
-  // Task endpoints - FIXED
+  // Task endpoints
   Future<Map<String, dynamic>> getTasks() async {
     return get(ApiConstants.tasks);
   }
@@ -147,7 +157,7 @@ class ApiClient {
     return post('/tasks/$id/complete', {});
   }
 
-  // Referral endpoints - FIXED
+  // Referral endpoints
   Future<Map<String, dynamic>> getReferrals() async {
     return get(ApiConstants.referrals);
   }
@@ -165,7 +175,7 @@ class ApiClient {
     return get(ApiConstants.kycStatus);
   }
 
-  // Notification endpoints - FIXED
+  // Notification endpoints
   Future<Map<String, dynamic>> getNotifications({
     int? limit,
     int? offset,
@@ -203,6 +213,31 @@ class ApiClient {
 
   Future<Map<String, dynamic>> markUserNotificationAsRead(int id) async {
     return put('/user/notifications/$id/read', {});
+  }
+
+  // NEW: Support ticket endpoints
+  Future<Map<String, dynamic>> getSupportTickets({
+    int? limit,
+    int? offset,
+  }) async {
+    final queryParams = <String, dynamic>{};
+    if (limit != null) queryParams['limit'] = limit;
+    if (offset != null) queryParams['offset'] = offset;
+
+    return get('/user/support/tickets', queryParams: queryParams);
+  }
+
+  Future<Map<String, dynamic>> createSupportTicket(
+    Map<String, dynamic> body,
+  ) async {
+    return post('/user/support/tickets', body);
+  }
+
+  Future<Map<String, dynamic>> addMessageToTicket(
+    int ticketId,
+    Map<String, dynamic> body,
+  ) async {
+    return post('/user/support/tickets/$ticketId/messages', body);
   }
 
   // App settings (public endpoint)

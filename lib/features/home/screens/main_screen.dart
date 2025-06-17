@@ -1,4 +1,5 @@
 // lib/features/home/screens/main_screen.dart
+import 'package:app/app/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -56,7 +57,7 @@ class MainScreen extends ConsumerWidget {
                         child: Container(
                           padding: const EdgeInsets.all(2),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF00D4AA),
+                            color: AppTheme.primaryColor,
                             borderRadius: BorderRadius.circular(6),
                           ),
                           constraints: const BoxConstraints(
@@ -90,7 +91,7 @@ class MainScreen extends ConsumerWidget {
           },
           type: BottomNavigationBarType.fixed,
           backgroundColor: const Color(0xFF2A2A2A),
-          selectedItemColor: const Color(0xFF00D4AA),
+          selectedItemColor: AppTheme.primaryColor,
           unselectedItemColor: const Color(0xFF8E8E8E),
           selectedLabelStyle: const TextStyle(
             fontSize: 12,
@@ -99,9 +100,9 @@ class MainScreen extends ConsumerWidget {
           unselectedLabelStyle: const TextStyle(fontSize: 12),
           items: const [
             BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
+              icon: Icon(Icons.analytics_outlined),
+              activeIcon: Icon(Icons.analytics_sharp),
+              label: 'Dashboard',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet_outlined),

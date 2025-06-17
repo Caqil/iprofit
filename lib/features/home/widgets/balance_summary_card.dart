@@ -1,4 +1,5 @@
 // lib/features/home/widgets/balance_summary_card.dart
+import 'package:app/app/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math' as math;
@@ -80,7 +81,7 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF00D4AA).withOpacity(0.1),
+            color: AppTheme.primaryColor.withOpacity(0.1),
             blurRadius: 20,
             offset: const Offset(0, 8),
           ),
@@ -112,33 +113,6 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
                 ),
                 child: Stack(
                   children: [
-                    // Shimmer effect
-                    Positioned.fill(
-                      child: Transform.rotate(
-                        angle: -math.pi / 4,
-                        child: Transform.translate(
-                          offset: Offset(
-                            _shimmerAnimation.value *
-                                MediaQuery.of(context).size.width,
-                            0,
-                          ),
-                          child: Container(
-                            width: 50,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.white.withOpacity(0.0),
-                                  Colors.white.withOpacity(0.1),
-                                  Colors.white.withOpacity(0.0),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-
-                    // Card content
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -150,14 +124,14 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
                               children: [
                                 Icon(
                                   Icons.account_balance_wallet,
-                                  color: Color(0xFF00D4AA),
+                                  color: AppTheme.primaryColor,
                                   size: 18,
                                 ),
                                 SizedBox(width: 8),
                                 Text(
                                   'Total Balance',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -187,7 +161,7 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
                                         _amountAnimation.value,
                                   ),
                                   style: const TextStyle(
-                                    fontSize: 36,
+                                    fontSize: 30,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: -0.5,
                                   ),
@@ -203,7 +177,7 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
                               ),
                           ],
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 15),
 
                         // Divider
                         Container(
@@ -218,7 +192,7 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 14),
 
                         // Today's Profit and Plan Type
                         Row(
@@ -228,7 +202,7 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
                                 'Today\'s Profit',
                                 '+${Formatters.formatCurrency(todaysProfit)}',
                                 icon: Icons.trending_up,
-                                iconColor: const Color(0xFF00D4AA),
+                                iconColor: AppTheme.primaryColor,
                               ),
                             ),
                             const SizedBox(width: 5),
@@ -264,7 +238,7 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(0.05),
           borderRadius: BorderRadius.circular(16),
@@ -273,13 +247,12 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: const Color(0xFF00D4AA), size: 14),
             const SizedBox(width: 4),
             Text(
               label,
               style: const TextStyle(
-                color: Color(0xFF00D4AA),
-                fontSize: 12,
+                color: AppTheme.primaryColor,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -296,11 +269,11 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
           decoration: BoxDecoration(
-            color: (isPositive ? const Color(0xFF00D4AA) : Colors.red)
+            color: (isPositive ? AppTheme.primaryColor : Colors.red)
                 .withOpacity(0.15),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: (isPositive ? const Color(0xFF00D4AA) : Colors.red)
+              color: (isPositive ? AppTheme.primaryColor : Colors.red)
                   .withOpacity(0.3),
             ),
           ),
@@ -309,14 +282,14 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
             children: [
               Icon(
                 isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                color: isPositive ? const Color(0xFF00D4AA) : Colors.red,
+                color: isPositive ? AppTheme.primaryColor : Colors.red,
                 size: 14,
               ),
               const SizedBox(width: 4),
               Text(
                 '${isPositive ? '+' : ''}${(percentChange * _percentageAnimation.value).toStringAsFixed(1)}%',
                 style: TextStyle(
-                  color: isPositive ? const Color(0xFF00D4AA) : Colors.red,
+                  color: isPositive ? AppTheme.primaryColor : Colors.red,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
@@ -359,8 +332,8 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
               value,
               style: TextStyle(
                 color: label.contains('Profit')
-                    ? theme.primaryColor
-                    : theme.dividerColor,
+                    ? AppTheme.primaryColor
+                    : AppTheme.accentColor,
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),

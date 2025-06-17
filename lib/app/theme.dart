@@ -2,20 +2,17 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Define colors optimized for an investment app
-  static const Color primaryColor = Color.fromARGB(
-    255,
-    13,
-    193,
-    172,
+  static const Color primaryColor = Color(
+    0xFF3498DB,
   ); // Deep teal for trust and stability
   static const Color secondaryColor = Color(
     0xFFF4D03F,
   ); // Soft gold for wealth and optimism
   static const Color accentColor = Color(
-    0xFF2ECC71,
+    0xFF3498DB,
   ); // Vibrant green for growth
   static const Color successColor = Color(
-    0xFF27AE60,
+    0xFF3498DB,
   ); // Balanced green for positive outcomes
   static const Color errorColor = Color(
     0xFFE74C3C,
