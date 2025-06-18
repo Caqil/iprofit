@@ -27,8 +27,8 @@ class ReferralInfo extends _$ReferralInfo {
       'referrals': (referrals['referrals'] as List)
           .map((json) => Referral.fromJson(json))
           .toList(),
-      'total_referrals': referrals['total_referrals'] as int,
-      'total_earnings': earnings['total_earnings'] as double,
+      'total_referrals': _safeIntCast(referrals['total_referrals']),
+      'total_earnings': _safeDoubleCast(earnings['total_earnings']),
       'referral_code': earnings['referral_code'] as String,
     };
   }
@@ -54,12 +54,28 @@ class ReferralInfo extends _$ReferralInfo {
         'referrals': (referrals['referrals'] as List)
             .map((json) => Referral.fromJson(json))
             .toList(),
-        'total_referrals': referrals['total_referrals'] as int,
-        'total_earnings': earnings['total_earnings'] as double,
+        'total_referrals': _safeIntCast(referrals['total_referrals']),
+        'total_earnings': _safeDoubleCast(earnings['total_earnings']),
         'referral_code': earnings['referral_code'] as String,
       });
     } catch (e, st) {
       state = AsyncError(e, st);
     }
+  }
+
+  // Helper method to safely cast numeric values to int
+  int _safeIntCast(dynamic value) {
+    if (value is int) return value;
+    if (value is double) return value.toInt();
+    if (value is String) return int.tryParse(value) ?? 0;
+    return 0;
+  }
+
+  // Helper method to safely cast numeric values to double
+  double _safeDoubleCast(dynamic value) {
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) return double.tryParse(value) ?? 0.0;
+    return 0.0;
   }
 }
