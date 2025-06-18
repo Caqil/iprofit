@@ -2,6 +2,7 @@
 // EXACT MATCH FOR THE UI IN THE IMAGE WITH SKELETON LOADING
 // Features: Skeletonizer for loading states, matches exact design from image
 
+import 'package:app/shared/widgets/glass_container.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,22 +19,7 @@ class ProfileScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A1A),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1A1A),
-        title: const Text(
-          'Profile',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.menu, color: Colors.white),
-          onPressed: () {},
-        ),
-      ),
+
       body: RefreshIndicator(
         color: const Color(0xFF3B82F6),
         backgroundColor: const Color(0xFF2A2A2A),
@@ -86,27 +72,17 @@ class ProfileScreen extends ConsumerWidget {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
+          spacing: 20,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Profile Header Card
             _buildProfileHeader(context, user),
-
-            const SizedBox(height: 24),
-
             // Account Settings Section
             _buildAccountSettingsSection(context, ref, user),
-
-            const SizedBox(height: 24),
-
             // Support & Info Section
             _buildSupportInfoSection(context),
-
-            const SizedBox(height: 24),
-
             // Delete Account Section
             _buildDeleteAccountSection(context, ref),
-
-            const SizedBox(height: 40),
           ],
         ),
       ),
@@ -114,14 +90,11 @@ class ProfileScreen extends ConsumerWidget {
   }
 
   Widget _buildProfileHeader(BuildContext context, User user) {
-    return Container(
+    return GlassContainer(
+      glassType: GlassType.dark,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF3A3A3A)),
-      ),
+
       child: Column(
         children: [
           // Profile Picture and Name Row

@@ -1,8 +1,8 @@
-// lib/app/router.dart
+// lib/app/router.dart (Fixed version)
+import 'package:app/features/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:async';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/register_screen.dart';
 import '../features/auth/screens/verify_email_screen.dart';
@@ -24,12 +24,11 @@ import '../features/news/screens/news_detail_screen.dart';
 import '../features/notifications/screens/notifications_screen.dart';
 import '../features/auth/providers/auth_provider.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
-import '../core/constants/onboarding_constants.dart';
-import '../core/services/storage_service.dart';
-import '../providers/global_providers.dart' as storageServiceProvider;
+import '../core/services/onboarding_service.dart';
 
 // Define route names as constants
 class AppRoutes {
+  static const String splash = '/splash';
   static const String onboarding = '/onboarding';
   static const String login = '/login';
   static const String register = '/register';
@@ -52,111 +51,118 @@ class AppRoutes {
   static const String notifications = '/notifications';
 }
 
-// Router Notifier to handle auth state changes safely
+// Simplified Router Notifier - only redirects after initialization
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
-    _ref.listen<AsyncValue<bool>>(
-      _authStateListenable,
+    // Listen to auth state changes for logged-in users
+    _ref.listen<AsyncValue<dynamic>>(
+      authProvider,
       (_, __) => notifyListeners(),
     );
   }
 
   final Ref _ref;
 
-  // Simple boolean state provider to avoid dependency issues
-  final _authStateListenable = StateProvider<AsyncValue<bool>>((ref) {
-    return ref.watch(authProvider).whenData((user) => user != null);
-  });
-
-  // Safe way to get auth state
+  // Get current auth state
   bool get isLoggedIn {
-    final authState = _ref.read(_authStateListenable);
-    return authState.valueOrNull ?? false;
+    final authState = _ref.read(authProvider);
+    return authState.valueOrNull != null;
   }
 
-  // Safe way to get onboarding state
-  bool get hasCompletedOnboarding {
-    final storageService = _ref.read(
-      storageServiceProvider.storageServiceProvider,
-    );
-    return storageService.getBool(OnboardingConstants.hasCompletedOnboarding) ??
-        false;
+  // Get onboarding state
+  OnboardingState get onboardingState {
+    return _ref.read(onboardingStateProvider);
   }
 
   String? redirect(BuildContext context, GoRouterState state) {
+    final currentPath = state.uri.path;
     final isLoggedIn = this.isLoggedIn;
-    final hasCompletedOnboarding = this.hasCompletedOnboarding;
+    final onboardingState = this.onboardingState;
 
-    // Define auth routes
-    final isAuthRoute = [
+    // Don't redirect if we're still loading or on splash screen
+    if (onboardingState.isLoading || currentPath == AppRoutes.splash) {
+      return null;
+    }
+
+    // Public routes that don't need auth or onboarding
+    final publicRoutes = [
+      AppRoutes.splash,
+      AppRoutes.onboarding,
       AppRoutes.login,
       AppRoutes.register,
       AppRoutes.verifyEmail,
       AppRoutes.forgotPassword,
-    ].contains(state.uri.path);
+    ];
 
-    final isOnboardingRoute = state.uri.path == AppRoutes.onboarding;
-
-    // If onboarding is not completed, redirect to onboarding
-    if (!hasCompletedOnboarding && !isOnboardingRoute) {
-      return AppRoutes.onboarding;
-    }
-
-    // If onboarding is completed but not logged in, redirect to login for protected routes
-    if (hasCompletedOnboarding && !isLoggedIn && !isAuthRoute) {
-      return AppRoutes.login;
-    }
-
-    // If logged in but on auth route, redirect to home
-    if (isLoggedIn && isAuthRoute) {
-      return AppRoutes.home;
-    }
-
-    // If onboarding is completed and trying to access onboarding, redirect to appropriate page
-    if (hasCompletedOnboarding && isOnboardingRoute) {
+    // If user is trying to access onboarding but has already completed it
+    if (currentPath == AppRoutes.onboarding && onboardingState.hasCompleted) {
       return isLoggedIn ? AppRoutes.home : AppRoutes.login;
     }
 
-    // No redirection needed
+    // If user is on auth route but already logged in
+    if (isLoggedIn &&
+        [AppRoutes.login, AppRoutes.register].contains(currentPath)) {
+      return AppRoutes.home;
+    }
+
+    // If user is trying to access protected route without auth
+    if (!isLoggedIn && !publicRoutes.contains(currentPath)) {
+      return AppRoutes.login;
+    }
+
+    // No redirect needed
     return null;
   }
 }
 
+// Router configuration with splash screen as initial route
 final routerProvider = Provider<GoRouter>((ref) {
-  final notifier = RouterNotifier(ref);
+  final routerNotifier = RouterNotifier(ref);
 
   return GoRouter(
-    initialLocation: AppRoutes.home,
+    initialLocation: AppRoutes.splash, // Start with splash screen
     debugLogDiagnostics: true,
-    refreshListenable: notifier,
-    redirect: notifier.redirect,
+    refreshListenable: routerNotifier,
+    redirect: routerNotifier.redirect,
+
     // Error handling
     errorBuilder: (context, state) => Scaffold(
+      backgroundColor: const Color(0xFF1A1A1A),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const SizedBox(height: 16),
             Text(
               'Page not found: ${state.uri.path}',
-              style: const TextStyle(fontSize: 18),
+              style: const TextStyle(fontSize: 18, color: Colors.white),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => context.go(AppRoutes.home),
+              onPressed: () => context.go(AppRoutes.splash),
               child: const Text('Go to Home'),
             ),
           ],
         ),
       ),
     ),
+
     routes: [
-      // Onboarding route
+      // Splash Screen (Initial Route)
+      GoRoute(
+        path: AppRoutes.splash,
+        builder: (context, state) => const SplashScreen(),
+      ),
+
+      // Onboarding Route
       GoRoute(
         path: AppRoutes.onboarding,
         builder: (context, state) => const OnboardingScreen(),
       ),
 
-      // Auth routes
+      // Auth Routes
       GoRoute(
         path: AppRoutes.login,
         builder: (context, state) => const LoginScreen(),
@@ -179,7 +185,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
 
-      // Main app routes
+      // Main App Routes (Protected)
       GoRoute(
         path: AppRoutes.home,
         builder: (context, state) => const MainScreen(),
@@ -235,8 +241,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.newsDetail,
         builder: (context, state) {
-          final newsId = int.tryParse(state.pathParameters['id'] ?? '0') ?? 0;
-          return NewsDetailScreen(newsId: newsId);
+          final id = state.pathParameters['id']!;
+          return NewsDetailScreen(newsId: int.parse(id));
         },
       ),
       GoRoute(

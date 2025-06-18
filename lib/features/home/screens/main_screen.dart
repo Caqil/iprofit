@@ -112,13 +112,13 @@ class MainScreen extends ConsumerWidget {
               label: 'Refer',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.task_outlined),
-              activeIcon: Icon(Icons.task),
+              icon: Icon(Icons.wallet_outlined),
+              activeIcon: Icon(Icons.wallet),
               label: 'Wallet',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.task_outlined),
-              activeIcon: Icon(Icons.task),
+              icon: Icon(Icons.newspaper_outlined),
+              activeIcon: Icon(Icons.newspaper_rounded),
               label: 'News',
             ),
             BottomNavigationBarItem(
