@@ -1,17 +1,13 @@
 // lib/features/profile/screens/profile_screen.dart
+// EXACT MATCH FOR THE UI IN THE IMAGE WITH SKELETON LOADING
+// Features: Skeletonizer for loading states, matches exact design from image
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import '../providers/profile_provider.dart';
-import '../widgets/profile_header.dart';
-import '../widgets/profile_menu_item.dart';
-import '../widgets/profile_section.dart';
-import '../../../shared/widgets/error_widget.dart';
 import '../../../models/user.dart';
-import '../../../core/utils/snackbar_utils.dart';
-import '../../../features/auth/providers/auth_provider.dart';
-import '../../../core/utils/navigation_utils.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -19,404 +15,96 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final profileState = ref.watch(profileProvider);
-    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: RefreshIndicator(
-        color: const Color(0xFF00D4AA),
-        onRefresh: () => ref.refresh(profileProvider.future),
-        child: profileState.when(
-          data: (profileData) {
-            return _buildContent(context, ref, profileData);
-          },
-          loading: () => _buildLoadingContent(),
-          error: (error, stackTrace) => CustomErrorWidget(
-            error: error.toString(),
-            onRetry: () => ref.refresh(profileProvider.future),
+      backgroundColor: const Color(0xFF1A1A1A),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1A1A1A),
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+            fontSize: 18,
           ),
         ),
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.menu, color: Colors.white),
+          onPressed: () {},
+        ),
       ),
+      body: RefreshIndicator(
+        color: const Color(0xFF3B82F6),
+        backgroundColor: const Color(0xFF2A2A2A),
+        onRefresh: () async {
+          ref.invalidate(profileProvider);
+          await ref.read(profileProvider.future);
+        },
+        child: profileState.when(
+          data: (user) => _buildContent(context, ref, user, false),
+          loading: () =>
+              _buildContent(context, ref, _createPlaceholderUser(), true),
+          error: (error, stackTrace) =>
+              _buildErrorContent(context, ref, error.toString()),
+        ),
+      ),
+    );
+  }
+
+  // Helper method to create placeholder user for skeleton UI
+  User _createPlaceholderUser() {
+    return User(
+      id: 982345,
+      name: 'John Doe',
+      email: 'john.doe@example.com',
+      phone: '+1 234 567 8901',
+      balance: 1000.0,
+      referralCode: 'REF123',
+      planId: 1,
+      isKycVerified: true,
+      isAdmin: false,
+      isBlocked: false,
+      biometricEnabled: true,
+      createdAt: DateTime.now().toIso8601String(),
     );
   }
 
   Widget _buildContent(
     BuildContext context,
     WidgetRef ref,
-    Map<String, dynamic> data,
+    User user,
+    bool isLoading,
   ) {
-    final user = data['user'] as User;
-    final kycStatus = data['kycStatus'] as Map<String, dynamic>;
-    final supportTickets = data['supportTickets'] as List<dynamic>;
-    final appInfo = data['appInfo'] as Map<String, dynamic>;
-    final accountSettings = data['accountSettings'] as Map<String, dynamic>;
-
-    return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(),
-      child: Column(
-        children: [
-          // Profile Header
-          ProfileHeader(user: user),
-
-          const SizedBox(height: 24),
-
-          // Account Settings Section
-          ProfileSection(
-            title: 'Account Settings',
-            children: [
-              // KYC Verification
-              ProfileMenuItem(
-                icon: Icons.verified_user,
-                title: 'KYC Verification',
-                subtitle: _getKycStatusText(kycStatus),
-                subtitleColor: _getKycStatusColor(kycStatus),
-                trailing: _buildKycTrailing(context, ref, kycStatus),
-                onTap: () => _handleKycTap(context, ref, kycStatus),
-              ),
-
-              // Biometric Login
-              ProfileMenuItem(
-                icon: Icons.fingerprint,
-                title: 'Biometric Login',
-                subtitle: accountSettings['biometric_enabled'] == true
-                    ? 'Enabled'
-                    : 'Disabled',
-                subtitleColor: accountSettings['biometric_enabled'] == true
-                    ? const Color(0xFF00D4AA)
-                    : const Color(0xFF8E8E8E),
-                trailing: Switch(
-                  value: accountSettings['biometric_enabled'] == true,
-                  onChanged: (value) => _toggleBiometric(context, ref, value),
-                  activeColor: const Color(0xFF00D4AA),
-                ),
-              ),
-
-              // Change Password
-              ProfileMenuItem(
-                icon: Icons.lock_outline,
-                title: 'Change Password',
-                onTap: () => context.push('/change-password'),
-              ),
-
-              // Logout
-              ProfileMenuItem(
-                icon: Icons.logout,
-                title: 'Logout',
-                titleColor: const Color(0xFFFF6B6B),
-                onTap: () => _showLogoutDialog(context, ref),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 24),
-
-          // Support & Info Section
-          ProfileSection(
-            title: 'Support & Info',
-            children: [
-              // Help & Support
-              ProfileMenuItem(
-                icon: Icons.help_outline,
-                title: 'Help & Support',
-                onTap: () => _showHelpOptions(context),
-              ),
-
-              // My Tickets
-              ProfileMenuItem(
-                icon: Icons.confirmation_number_outlined,
-                title: 'My Tickets',
-                trailing: supportTickets.isNotEmpty
-                    ? Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF00D4AA),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          '${supportTickets.length}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                    : null,
-                onTap: () => _showSupportTickets(context),
-              ),
-
-              // App Info
-              ProfileMenuItem(
-                icon: Icons.info_outline,
-                title: 'App Info',
-                subtitle: appInfo['version'] ?? 'v2.1.3',
-                onTap: () => _showAppInfo(context, appInfo),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 32),
-
-          // Delete Account Section
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF6B6B).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFFF6B6B).withOpacity(0.3),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.warning, color: Color(0xFFFF6B6B), size: 20),
-                const SizedBox(width: 12),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Delete Account',
-                        style: TextStyle(
-                          color: Color(0xFFFF6B6B),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Permanently remove your account and all data',
-                        style: TextStyle(
-                          color: Color(0xFFFF6B6B),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _showDeleteAccountDialog(context, ref),
-                  child: const Text(
-                    'Delete',
-                    style: TextStyle(
-                      color: Color(0xFFFF6B6B),
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 40),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLoadingContent() {
     return Skeletonizer(
-      enabled: true,
+      enabled: isLoading,
       effect: const ShimmerEffect(
         baseColor: Color(0xFF2A2A2A),
         highlightColor: Color(0xFF3A3A3A),
+        duration: Duration(milliseconds: 1000),
       ),
       child: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
+        physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Profile Header Skeleton
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Theme.of(context).scaffoldBackgroundColor,
-                    Theme.of(context).primaryColor.withOpacity(0.1),
-                  ],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    children: [
-                      // Header with back button and edit button
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(width: 24, height: 24, color: Colors.white),
-                          Container(width: 60, height: 18, color: Colors.white),
-                          Container(width: 24, height: 24, color: Colors.white),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                      // Profile content skeleton
-                      Row(
-                        children: [
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 120,
-                                  height: 20,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 160,
-                                  height: 14,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  width: 140,
-                                  height: 14,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  width: 100,
-                                  height: 14,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(height: 8),
-                                Container(
-                                  width: 80,
-                                  height: 20,
-                                  color: Colors.white,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            // Profile Header Card
+            _buildProfileHeader(context, user),
 
             const SizedBox(height: 24),
 
-            // Account Settings Section Skeleton
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(width: 140, height: 18, color: Colors.white),
-                  const SizedBox(height: 12),
-                  // Menu items skeleton
-                  ...List.generate(
-                    4,
-                    (index) => Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2A2A2A),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(width: 40, height: 40, color: Colors.white),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 120,
-                                  height: 16,
-                                  color: Colors.white,
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  width: 80,
-                                  height: 14,
-                                  color: Colors.white,
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(width: 20, height: 20, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Account Settings Section
+            _buildAccountSettingsSection(context, ref, user),
 
             const SizedBox(height: 24),
 
-            // Support & Info Section Skeleton
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(width: 120, height: 18, color: Colors.white),
-                  const SizedBox(height: 12),
-                  // Menu items skeleton
-                  ...List.generate(
-                    3,
-                    (index) => Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF2A2A2A),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(width: 40, height: 40, color: Colors.white),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 100,
-                                  height: 16,
-                                  color: Colors.white,
-                                ),
-                                if (index == 2) ...[
-                                  const SizedBox(height: 4),
-                                  Container(
-                                    width: 60,
-                                    height: 14,
-                                    color: Colors.white,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                          Container(width: 20, height: 20, color: Colors.white),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // Support & Info Section
+            _buildSupportInfoSection(context),
+
+            const SizedBox(height: 24),
+
+            // Delete Account Section
+            _buildDeleteAccountSection(context, ref),
 
             const SizedBox(height: 40),
           ],
@@ -425,112 +113,610 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  // Helper methods for KYC status
-  String _getKycStatusText(Map<String, dynamic> kycStatus) {
-    final status = kycStatus['status'] ?? 'not_submitted';
-    final isVerified = kycStatus['is_verified'] == true;
+  Widget _buildProfileHeader(BuildContext context, User user) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: const Color(0xFF2A2A2A),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF3A3A3A)),
+      ),
+      child: Column(
+        children: [
+          // Profile Picture and Name Row
+          Row(
+            children: [
+              // Profile Picture
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF3B82F6), width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: 28,
+                  backgroundColor: const Color(0xFF4A5568),
+                  backgroundImage: user.profilePicUrl != null
+                      ? NetworkImage(user.profilePicUrl!)
+                      : null,
+                  child: user.profilePicUrl == null
+                      ? Text(
+                          user.name.isNotEmpty
+                              ? user.name[0].toUpperCase()
+                              : 'U',
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        )
+                      : null,
+                ),
+              ),
 
-    if (isVerified) return 'Approved';
+              const SizedBox(width: 16),
 
-    switch (status) {
-      case 'pending':
-        return 'Under Review';
-      case 'rejected':
-        return 'Rejected';
-      case 'not_submitted':
-      default:
-        return 'Your account is not KYC verified';
-    }
-  }
+              // Name and Email
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Name with verified badge
+                    Row(
+                      children: [
+                        Text(
+                          user.name,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (user.isKycVerified)
+                          const Icon(
+                            Icons.verified,
+                            color: Color(0xFF3B82F6),
+                            size: 20,
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    // Email
+                    Text(
+                      user.email,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF9CA3AF),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-  Color _getKycStatusColor(Map<String, dynamic> kycStatus) {
-    final status = kycStatus['status'] ?? 'not_submitted';
-    final isVerified = kycStatus['is_verified'] == true;
-
-    if (isVerified) return const Color(0xFF00D4AA);
-
-    switch (status) {
-      case 'pending':
-        return const Color(0xFFF1C40F);
-      case 'rejected':
-        return const Color(0xFFFF6B6B);
-      case 'not_submitted':
-      default:
-        return const Color(0xFF8E8E8E);
-    }
-  }
-
-  Widget? _buildKycTrailing(
-    BuildContext context,
-    WidgetRef ref,
-    Map<String, dynamic> kycStatus,
-  ) {
-    final status = kycStatus['status'] ?? 'not_submitted';
-    final isVerified = kycStatus['is_verified'] == true;
-
-    if (isVerified) {
-      return const Icon(Icons.check_circle, color: Color(0xFF00D4AA), size: 20);
-    }
-
-    if (status == 'not_submitted' || status == 'rejected') {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF1C40F),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Text(
-          'Verify Now',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
+              // Edit Icon
+              IconButton(
+                onPressed: () => context.push('/edit-profile'),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: Color(0xFF3B82F6),
+                  size: 20,
+                ),
+              ),
+            ],
           ),
-        ),
-      );
-    }
 
-    return const Text(
-      'View',
-      style: TextStyle(
-        color: Color(0xFF00D4AA),
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
+          const SizedBox(height: 16),
+
+          // Phone Number Row
+          Row(
+            children: [
+              const Icon(Icons.phone, color: Color(0xFF3B82F6), size: 16),
+              const SizedBox(width: 8),
+              Skeletonizer.zone(
+                child: Text(
+                  user.phone.isNotEmpty ? user.phone : '+1 234 567 8901',
+                  style: const TextStyle(fontSize: 14, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // User ID Row
+          Row(
+            children: [
+              const Icon(
+                Icons.person_outline,
+                color: Color(0xFF3B82F6),
+                size: 16,
+              ),
+              const SizedBox(width: 8),
+              Skeletonizer.zone(
+                child: Text(
+                  'User ID: ${user.id}',
+                  style: const TextStyle(fontSize: 14, color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // Premium Plan Badge
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3B82F6),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Text(
+                'Premium Plan',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  // Event handlers
-  void _handleKycTap(
+  Widget _buildAccountSettingsSection(
     BuildContext context,
     WidgetRef ref,
-    Map<String, dynamic> kycStatus,
+    User user,
   ) {
-    final status = kycStatus['status'] ?? 'not_submitted';
-    final isVerified = kycStatus['is_verified'] == true;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Title
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Skeletonizer.zone(
+            child: const Text(
+              'Account Settings',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
 
-    if (isVerified) {
-      SnackbarUtils.showSuccessSnackbar(
-        context,
-        'Your account is already KYC verified',
-      );
-    } else {
-      context.push('/kyc');
-    }
+        const SizedBox(height: 12),
+
+        // Settings Container
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2A2A2A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF3A3A3A)),
+          ),
+          child: Column(
+            children: [
+              // KYC Verification (Approved)
+              if (user.isKycVerified) ...[
+                _buildSettingsItem(
+                  icon: Icons.check_circle,
+                  iconColor: const Color(0xFF10B981),
+                  title: 'KYC Verification',
+                  subtitle: 'Approved',
+                  subtitleColor: const Color(0xFF10B981),
+                  trailing: _buildActionButton(
+                    'View',
+                    color: const Color(0xFF3B82F6),
+                    onPressed: () => context.push('/kyc'),
+                  ),
+                ),
+                _buildDivider(),
+              ],
+
+              // KYC Not Verified
+              if (!user.isKycVerified) ...[
+                _buildSettingsItem(
+                  icon: Icons.warning,
+                  iconColor: const Color(0xFFF59E0B),
+                  title: 'KYC Not Verified',
+                  subtitle: 'Your account is not KYC verified',
+                  subtitleColor: const Color(0xFFF59E0B),
+                  trailing: _buildActionButton(
+                    'Verify',
+                    color: const Color(0xFFF59E0B),
+                    onPressed: () => context.push('/kyc'),
+                  ),
+                ),
+                _buildDivider(),
+              ],
+
+              // Biometric Login
+              _buildSettingsItem(
+                icon: Icons.fingerprint,
+                iconColor: const Color(0xFF3B82F6),
+                title: 'Biometric Login',
+                trailing: Switch(
+                  value: user.biometricEnabled,
+                  onChanged: (value) => _toggleBiometric(context, ref, value),
+                  activeColor: const Color(0xFF3B82F6),
+                  activeTrackColor: const Color(0xFF3B82F6).withOpacity(0.3),
+                  inactiveThumbColor: const Color(0xFF6B7280),
+                  inactiveTrackColor: const Color(0xFF374151),
+                ),
+              ),
+
+              _buildDivider(),
+
+              // Change Password
+              _buildSettingsItem(
+                icon: Icons.lock_outline,
+                iconColor: const Color(0xFF3B82F6),
+                title: 'Change Password',
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Color(0xFF6B7280),
+                  size: 20,
+                ),
+                onTap: () => context.push('/change-password'),
+              ),
+
+              _buildDivider(),
+
+              // Logout
+              _buildSettingsItem(
+                icon: Icons.logout,
+                iconColor: const Color(0xFFEF4444),
+                title: 'Logout',
+                titleColor: const Color(0xFFEF4444),
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Color(0xFF6B7280),
+                  size: 20,
+                ),
+                onTap: () => _showLogoutDialog(context, ref),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
-  void _toggleBiometric(BuildContext context, WidgetRef ref, bool value) async {
+  Widget _buildSupportInfoSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section Title
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Skeletonizer.zone(
+            child: const Text(
+              'Support & Info',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 12),
+
+        // Support Container
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: const Color(0xFF2A2A2A),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF3A3A3A)),
+          ),
+          child: Column(
+            children: [
+              // Help & Support
+              _buildSettingsItem(
+                icon: Icons.help_outline,
+                iconColor: const Color(0xFF3B82F6),
+                title: 'Help & Support',
+                trailing: const Icon(
+                  Icons.chevron_right,
+                  color: Color(0xFF6B7280),
+                  size: 20,
+                ),
+                onTap: () => _showHelpOptions(context),
+              ),
+
+              _buildDivider(),
+
+              // My Tickets
+              _buildSettingsItem(
+                icon: Icons.confirmation_number_outlined,
+                iconColor: const Color(0xFF3B82F6),
+                title: 'My Tickets',
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Notification Badge
+                    Container(
+                      width: 20,
+                      height: 20,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF3B82F6),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '1',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Color(0xFF6B7280),
+                      size: 20,
+                    ),
+                  ],
+                ),
+                onTap: () => _showSupportTickets(context),
+              ),
+
+              _buildDivider(),
+
+              // App Info
+              _buildSettingsItem(
+                icon: Icons.info_outline,
+                iconColor: const Color(0xFF3B82F6),
+                title: 'App Info',
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'v2.1.3',
+                      style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+                    ),
+                    const SizedBox(width: 8),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Color(0xFF6B7280),
+                      size: 20,
+                    ),
+                  ],
+                ),
+                onTap: () => _showAppInfo(context),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDeleteAccountSection(BuildContext context, WidgetRef ref) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEF4444).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEF4444).withOpacity(0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.warning_outlined,
+            color: Color(0xFFEF4444),
+            size: 24,
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Delete Account',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFEF4444),
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  'Permanently remove your account and all data',
+                  style: TextStyle(fontSize: 12, color: Color(0xFFEF4444)),
+                ),
+              ],
+            ),
+          ),
+          _buildActionButton(
+            'Delete',
+            color: const Color(0xFFEF4444),
+            onPressed: () => _showDeleteAccountDialog(context, ref),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsItem({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    Color? titleColor,
+    Color? subtitleColor,
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: iconColor, size: 24),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Skeletonizer.zone(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: titleColor ?? Colors.white,
+                      ),
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    Skeletonizer.zone(
+                      child: Text(
+                        subtitle,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: subtitleColor ?? const Color(0xFF9CA3AF),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (trailing != null) trailing,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(
+    String text, {
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: InkWell(
+        onTap: onPressed,
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(
+      height: 1,
+      margin: const EdgeInsets.only(left: 56),
+      color: const Color(0xFF3A3A3A),
+    );
+  }
+
+  Widget _buildErrorContent(BuildContext context, WidgetRef ref, String error) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                color: Color(0xFFEF4444),
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Failed to load profile',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                error,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => ref.invalidate(profileProvider),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Retry'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF3B82F6),
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper Methods
+  Future<void> _toggleBiometric(
+    BuildContext context,
+    WidgetRef ref,
+    bool value,
+  ) async {
     try {
-      await ref.read(profileProvider.notifier).updateBiometricSetting(value);
-      SnackbarUtils.showSuccessSnackbar(
-        context,
-        value ? 'Biometric login enabled' : 'Biometric login disabled',
-      );
+      await ref.read(profileProvider.notifier).toggleBiometric(value);
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              value
+                  ? 'Biometric authentication enabled'
+                  : 'Biometric authentication disabled',
+            ),
+            backgroundColor: const Color(0xFF10B981),
+          ),
+        );
+      }
     } catch (e) {
-      SnackbarUtils.showErrorSnackbar(
-        context,
-        'Failed to update biometric setting',
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
     }
   }
 
@@ -542,28 +728,102 @@ class ProfileScreen extends ConsumerWidget {
         title: const Text('Logout', style: TextStyle(color: Colors.white)),
         content: const Text(
           'Are you sure you want to logout?',
-          style: TextStyle(color: Color(0xFF8E8E8E)),
+          style: TextStyle(color: Colors.white),
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(context),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: Color(0xFF8E8E8E)),
+              style: TextStyle(color: Color(0xFF9CA3AF)),
             ),
           ),
           TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                context.go('/login');
-              }
+            onPressed: () {
+              Navigator.pop(context);
+              context.go('/login');
             },
             child: const Text(
               'Logout',
-              style: TextStyle(color: Color(0xFFFF6B6B)),
+              style: TextStyle(color: Color(0xFFEF4444)),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showHelpOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF2A2A2A),
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Help & Support',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.chat, color: Color(0xFF3B82F6)),
+              title: const Text(
+                'Live Chat',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+            ListTile(
+              leading: const Icon(Icons.email, color: Color(0xFF3B82F6)),
+              title: const Text(
+                'Email Support',
+                style: TextStyle(color: Colors.white),
+              ),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSupportTickets(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Support tickets feature coming soon')),
+    );
+  }
+
+  void _showAppInfo(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: const Text(
+          'App Information',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Version: v2.1.3', style: TextStyle(color: Colors.white)),
+            Text('Build: 123', style: TextStyle(color: Colors.white)),
+            Text(
+              'Support: support@example.com',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK', style: TextStyle(color: Color(0xFF3B82F6))),
           ),
         ],
       ),
@@ -577,182 +837,57 @@ class ProfileScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFF2A2A2A),
         title: const Text(
           'Delete Account',
-          style: TextStyle(color: Color(0xFFFF6B6B)),
+          style: TextStyle(color: Color(0xFFEF4444)),
         ),
         content: const Text(
           'This action cannot be undone. All your data will be permanently deleted.',
-          style: TextStyle(color: Color(0xFF8E8E8E)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Color(0xFF8E8E8E)),
-            ),
-          ),
-          TextButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              try {
-                await ref.read(profileProvider.notifier).deleteAccount();
-                if (context.mounted) {
-                  SnackbarUtils.showSuccessSnackbar(
-                    context,
-                    'Account deleted successfully',
-                  );
-                  await ref.read(authProvider.notifier).logout();
-                  context.go('/login');
-                }
-              } catch (e) {
-                if (context.mounted) {
-                  SnackbarUtils.showErrorSnackbar(
-                    context,
-                    'Failed to delete account',
-                  );
-                }
-              }
-            },
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: Color(0xFFFF6B6B)),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showHelpOptions(BuildContext context) {
-    NavigationUtils.showCustomBottomSheet(
-      context: context,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: const Icon(Icons.email, color: Color(0xFF00D4AA)),
-            title: const Text('Email Support'),
-            onTap: () {
-              Navigator.pop(context);
-              // Open email app or copy email
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.chat, color: Color(0xFF00D4AA)),
-            title: const Text('Live Chat'),
-            onTap: () {
-              Navigator.pop(context);
-              // Open live chat
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.add, color: Color(0xFF00D4AA)),
-            title: const Text('Create Ticket'),
-            onTap: () {
-              Navigator.pop(context);
-              _showCreateTicketDialog(context);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showCreateTicketDialog(BuildContext context) {
-    final subjectController = TextEditingController();
-    final messageController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text(
-          'Create Support Ticket',
           style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: subjectController,
-              decoration: const InputDecoration(
-                labelText: 'Subject',
-                border: OutlineInputBorder(),
-              ),
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: messageController,
-              decoration: const InputDecoration(
-                labelText: 'Message',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Color(0xFF9CA3AF)),
+            ),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              SnackbarUtils.showSuccessSnackbar(
-                context,
-                'Support ticket created successfully',
-              );
+              _handleDeleteAccount(context, ref);
             },
-            child: const Text('Create'),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Color(0xFFEF4444)),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showSupportTickets(BuildContext context) {
-    // Navigate to support tickets screen or show in bottom sheet
-    SnackbarUtils.showInfoSnackbar(
-      context,
-      'Support tickets feature coming soon',
-    );
-  }
+  Future<void> _handleDeleteAccount(BuildContext context, WidgetRef ref) async {
+    try {
+      await ref.read(profileProvider.notifier).deleteAccount();
 
-  void _showAppInfo(BuildContext context, Map<String, dynamic> appInfo) {
-    NavigationUtils.showCustomBottomSheet(
-      context: context,
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            title: const Text('Version'),
-            trailing: Text(appInfo['version'] ?? 'v2.1.3'),
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Account deleted successfully'),
+            backgroundColor: Color(0xFF10B981),
           ),
-          ListTile(
-            title: const Text('Build'),
-            trailing: Text(appInfo['build'] ?? '123'),
+        );
+        context.go('/login');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error deleting account: ${e.toString()}'),
+            backgroundColor: const Color(0xFFEF4444),
           ),
-          ListTile(
-            title: const Text('Privacy Policy'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              Navigator.pop(context);
-              // Open privacy policy
-            },
-          ),
-          ListTile(
-            title: const Text('Terms of Service'),
-            trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-            onTap: () {
-              Navigator.pop(context);
-              // Open terms of service
-            },
-          ),
-        ],
-      ),
-    );
+        );
+      }
+    }
   }
 }

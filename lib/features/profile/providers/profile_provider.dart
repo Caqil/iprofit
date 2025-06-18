@@ -1,13 +1,13 @@
 // lib/features/profile/providers/profile_provider.dart
-import 'package:app/features/profile/repositories/profile_repository.dart' show ProfileRepository;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../repositories/profile_repository.dart';
+import '../../../providers/global_providers.dart';
 import '../../../models/user.dart';
-import '../../../providers/global_providers.dart' hide biometricServiceProvider;
-import '../../../core/services/biometric_service.dart';
-import '../../../core/constants/storage_keys.dart';
 
 part 'profile_provider.g.dart';
 
+// Repository provider
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   return ProfileRepository(apiClient: ref.watch(apiClientProvider));
 });
@@ -16,7 +16,8 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
 class Profile extends _$Profile {
   @override
   Future<User> build() async {
-    return ref.watch(profileRepositoryProvider).getUserProfile();
+    final repository = ref.watch(profileRepositoryProvider);
+    return repository.getProfile();
   }
 
   Future<void> updateProfile(
@@ -26,7 +27,6 @@ class Profile extends _$Profile {
   ) async {
     state = const AsyncLoading();
     try {
-      // Create a map with the user data
       final userData = {
         'name': name,
         'phone': phone,
@@ -36,6 +36,7 @@ class Profile extends _$Profile {
       final updatedUser = await ref
           .read(profileRepositoryProvider)
           .updateProfile(userData);
+
       state = AsyncValue.data(updatedUser);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -55,45 +56,34 @@ class Profile extends _$Profile {
     }
   }
 
-  Future<void> toggleBiometric() async {
-    final currentUser = state.valueOrNull;
-    if (currentUser == null) return;
-
-    final biometricService = ref.read(biometricServiceProvider);
-    final secureStorage = ref.read(secureStorageProvider);
-
+  // This method should now work since we added toggleBiometric to ProfileRepository
+  Future<void> toggleBiometric(bool enable) async {
+    state = const AsyncLoading();
     try {
-      if (currentUser.biometricEnabled) {
-        // Disable biometric
-        await ref.read(profileRepositoryProvider).toggleBiometric(false);
-        await secureStorage.delete(key: StorageKeys.biometricEnabled);
+      final updatedUser = await ref
+          .read(profileRepositoryProvider)
+          .toggleBiometric(enable);
 
-        state = AsyncValue.data(currentUser.copyWith(biometricEnabled: false));
-      } else {
-        // Enable biometric - Authenticate first
-        final authenticated = await biometricService.authenticate(
-          reason: 'Authenticate to enable biometric login',
-        );
-
-        if (authenticated) {
-          await ref.read(profileRepositoryProvider).toggleBiometric(true);
-          await secureStorage.write(
-            key: StorageKeys.biometricEnabled,
-            value: 'true',
-          );
-
-          state = AsyncValue.data(currentUser.copyWith(biometricEnabled: true));
-        }
-      }
+      state = AsyncValue.data(updatedUser);
     } catch (e, st) {
+      ref.invalidateSelf();
       state = AsyncError(e, st);
+    }
+  }
+
+  Future<void> deleteAccount() async {
+    try {
+      await ref.read(profileRepositoryProvider).deleteAccount();
+    } catch (e) {
+      rethrow;
     }
   }
 
   Future<void> refresh() async {
     state = const AsyncLoading();
     try {
-      final user = await ref.read(profileRepositoryProvider).getProfile();
+      final repository = ref.read(profileRepositoryProvider);
+      final user = await repository.getProfile();
       state = AsyncValue.data(user);
     } catch (e, st) {
       state = AsyncError(e, st);

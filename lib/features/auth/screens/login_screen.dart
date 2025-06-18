@@ -76,7 +76,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Investment Pro',
+                      'IProfit',
                       style: theme.textTheme.titleLarge?.copyWith(
                         color: theme.colorScheme.onSurface,
                         fontWeight: FontWeight.bold,

@@ -16,7 +16,6 @@ class ReferralsScreen extends ConsumerWidget {
     final referralInfoState = ref.watch(referralInfoProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Referrals')),
       body: RefreshIndicator(
         onRefresh: () => ref.read(referralInfoProvider.notifier).refresh(),
         child: referralInfoState.when(

@@ -1,4 +1,4 @@
-// lib/core/services/api_client.dart - UPDATED VERSION
+// lib/core/services/api_client.dart - COMPLETE UPDATED VERSION
 import 'package:dio/dio.dart';
 import '../constants/api_constants.dart';
 
@@ -83,16 +83,17 @@ class ApiClient {
     return put(ApiConstants.changePassword, body);
   }
 
+  // BIOMETRIC METHODS - MAKE SURE THESE EXIST
   Future<Map<String, dynamic>> enableBiometric() async {
     return post(ApiConstants.enableBiometric, {});
   }
 
-  // NEW: Disable biometric endpoint
+  // ADD THIS METHOD - This is what was missing
   Future<Map<String, dynamic>> disableBiometric() async {
     return put('/user/disable-biometric', {});
   }
 
-  // NEW: Delete account endpoint
+  // ADD THIS METHOD - This is what was missing
   Future<Map<String, dynamic>> deleteAccount() async {
     return delete('/user/profile');
   }
@@ -215,7 +216,7 @@ class ApiClient {
     return put('/user/notifications/$id/read', {});
   }
 
-  // NEW: Support ticket endpoints
+  // Support ticket endpoints
   Future<Map<String, dynamic>> getSupportTickets({
     int? limit,
     int? offset,

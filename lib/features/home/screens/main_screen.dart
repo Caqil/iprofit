@@ -3,6 +3,7 @@ import 'package:app/app/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../../referrals/screens/referrals_screen.dart';
 import 'home_screen.dart';
 import '../../wallet/screens/wallet_screen.dart';
 import '../../tasks/screens/tasks_screen.dart';
@@ -22,6 +23,7 @@ class MainScreen extends ConsumerWidget {
 
     final screens = [
       const HomeScreen(),
+      const ReferralsScreen(),
       const WalletScreen(),
       const TasksScreen(),
       const ProfileScreen(),
@@ -107,12 +109,17 @@ class MainScreen extends ConsumerWidget {
             BottomNavigationBarItem(
               icon: Icon(Icons.account_balance_wallet_outlined),
               activeIcon: Icon(Icons.account_balance_wallet),
+              label: 'Refer',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.task_outlined),
+              activeIcon: Icon(Icons.task),
               label: 'Wallet',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.task_outlined),
               activeIcon: Icon(Icons.task),
-              label: 'Tasks',
+              label: 'News',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
@@ -128,15 +135,17 @@ class MainScreen extends ConsumerWidget {
   String _getTitle(int index) {
     switch (index) {
       case 0:
-        return 'Investment Pro App';
+        return 'Iprofit';
       case 1:
-        return 'Wallet';
+        return 'Refer';
       case 2:
-        return 'Tasks';
+        return 'Wallet';
       case 3:
+        return 'News';
+      case 4:
         return 'Profile';
       default:
-        return 'Investment Pro App';
+        return 'Iprofit';
     }
   }
 }

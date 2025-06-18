@@ -15,7 +15,7 @@ class ApiConstants {
   static const String updateProfile = '/user/profile';
   static const String changePassword = '/user/change-password';
   static const String enableBiometric = '/user/enable-biometric';
-
+  static const String deleteAccount = '/user/profile';
   // Plan endpoints - FIXED: removed /user prefix
   static const String plans = '/plans';
   static const String purchasePlan = '/plans/{id}/purchase';

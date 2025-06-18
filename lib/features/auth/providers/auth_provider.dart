@@ -43,7 +43,7 @@ class Auth extends _$Auth {
 
     try {
       // Fetch user profile
-      final user = await ref.read(userRepositoryProvider).getUserProfile();
+      final user = await ref.read(userRepositoryProvider).getProfile();
       return user;
     } catch (e) {
       // If error fetching profile, logout and return null
@@ -143,7 +143,7 @@ class Auth extends _$Auth {
 
     state = const AsyncLoading();
     try {
-      final user = await ref.read(userRepositoryProvider).getUserProfile();
+      final user = await ref.read(userRepositoryProvider).getProfile();
       state = AsyncData(user);
     } catch (e) {
       await logout();
