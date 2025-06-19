@@ -213,10 +213,6 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
             fontWeight: FontWeight.bold,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.help_outline, color: Colors.white70),

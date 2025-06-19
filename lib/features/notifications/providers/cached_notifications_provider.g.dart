@@ -1,18 +1,19 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'notifications_provider.dart';
+part of 'cached_notifications_provider.dart';
 
 // **************************************************************************
 // RiverpodGenerator
 // **************************************************************************
 
 String _$unreadNotificationsCountHash() =>
-    r'cf5a7189e5ba07e84674a778705b8e4f0479fae1';
+    r'21bdd7430d67c7485c11d34a09c1353261312462';
 
-/// See also [unreadNotificationsCount].
+/// Provider for unread notifications count
+///
+/// Copied from [unreadNotificationsCount].
 @ProviderFor(unreadNotificationsCount)
-final unreadNotificationsCountProvider =
-    AutoDisposeFutureProvider<int>.internal(
+final unreadNotificationsCountProvider = AutoDisposeProvider<int>.internal(
   unreadNotificationsCount,
   name: r'unreadNotificationsCountProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
@@ -24,22 +25,23 @@ final unreadNotificationsCountProvider =
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-typedef UnreadNotificationsCountRef = AutoDisposeFutureProviderRef<int>;
-String _$notificationsHash() => r'375ff4eda4c0806de6f6734c66f83b0ae3392284';
+typedef UnreadNotificationsCountRef = AutoDisposeProviderRef<int>;
+String _$cachedNotificationsHash() =>
+    r'4a573ab473ff5cc98c6ed50668c38feefd68eb75';
 
-/// See also [Notifications].
-@ProviderFor(Notifications)
-final notificationsProvider = AutoDisposeAsyncNotifierProvider<Notifications,
-    List<AppNotification>>.internal(
-  Notifications.new,
-  name: r'notificationsProvider',
+/// See also [CachedNotifications].
+@ProviderFor(CachedNotifications)
+final cachedNotificationsProvider = AutoDisposeAsyncNotifierProvider<
+    CachedNotifications, List<AppNotification>>.internal(
+  CachedNotifications.new,
+  name: r'cachedNotificationsProvider',
   debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
       ? null
-      : _$notificationsHash,
+      : _$cachedNotificationsHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );
 
-typedef _$Notifications = AutoDisposeAsyncNotifier<List<AppNotification>>;
+typedef _$CachedNotifications = AutoDisposeAsyncNotifier<List<AppNotification>>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -8,7 +8,7 @@ import 'home_screen.dart';
 import '../../wallet/screens/wallet_screen.dart';
 import '../../tasks/screens/tasks_screen.dart';
 import '../../profile/screens/profile_screen.dart';
-import '../../../features/notifications/providers/notifications_provider.dart';
+import '../../notifications/providers/cached_notifications_provider.dart';
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
 
@@ -19,7 +19,7 @@ class MainScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final selectedIndex = ref.watch(selectedIndexProvider);
     final unreadCount =
-        ref.watch(unreadNotificationsCountProvider).valueOrNull ?? 0;
+        ref.watch(unreadNotificationsCountProvider);
 
     final screens = [
       const HomeScreen(),

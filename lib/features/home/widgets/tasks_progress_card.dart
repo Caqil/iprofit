@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../app/theme.dart';
-import '../providers/home_provider.dart';
+import '../providers/cached_home_provider.dart';
 
 class TasksProgressCard extends ConsumerWidget {
   const TasksProgressCard({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final homeState = ref.watch(homeProvider);
+    final homeState = ref.watch(cachedHomeProvider);
 
     return homeState.when(
       data: (homeData) {

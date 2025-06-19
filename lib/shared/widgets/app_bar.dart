@@ -1,7 +1,7 @@
 // lib/shared/widgets/app_bar.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../features/notifications/providers/notifications_provider.dart';
+import '../../features/notifications/providers/cached_notifications_provider.dart';
 import 'package:go_router/go_router.dart';
 
 class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -27,7 +27,7 @@ class CustomAppBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final unreadCount =
-        ref.watch(unreadNotificationsCountProvider).valueOrNull ?? 0;
+        ref.watch(unreadNotificationsCountProvider);
 
     return AppBar(
       title: Text(title),

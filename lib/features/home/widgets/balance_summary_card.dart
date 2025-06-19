@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/user.dart';
 import '../../../core/utils/formatters.dart';
-import '../providers/home_provider.dart';
+import '../providers/cached_home_provider.dart';
 
 class BalanceSummaryCard extends ConsumerStatefulWidget {
   final User user;
@@ -68,7 +68,7 @@ class _BalanceSummaryCardState extends ConsumerState<BalanceSummaryCard>
 
   @override
   Widget build(BuildContext context) {
-    final homeNotifier = ref.read(homeProvider.notifier);
+    final homeNotifier = ref.read(cachedHomeProvider.notifier);
     final theme = Theme.of(context);
     // Get real data from the provider
     final todaysProfit = homeNotifier.getTodaysProfit();

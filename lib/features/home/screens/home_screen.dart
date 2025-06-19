@@ -3,11 +3,12 @@ import 'package:app/core/enums/transaction_status.dart';
 import 'package:app/core/enums/transaction_type.dart';
 import 'package:app/models/transaction.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // For kDebugMode
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:skeletonizer/skeletonizer.dart'; // Add this import
+import 'package:skeletonizer/skeletonizer.dart';
 import '../../../app/theme.dart';
-import '../providers/home_provider.dart';
+import '../providers/cached_home_provider.dart';
 import '../widgets/balance_summary_card.dart';
 import '../widgets/action_buttons_row.dart';
 import '../widgets/income_chart_card.dart';
@@ -15,35 +16,33 @@ import '../widgets/referral_leaderboard_card.dart';
 import '../widgets/tasks_progress_card.dart';
 import '../widgets/todays_log_card.dart';
 import '../../../shared/widgets/error_widget.dart';
-import '../../../features/notifications/providers/notifications_provider.dart';
-import '../../../models/user.dart'; // Add this import for the placeholder data
+import '../../../features/notifications/providers/cached_notifications_provider.dart';
+import '../../../models/user.dart';
+import '../../../core/services/cache_service.dart' as cacheService;
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final homeState = ref.watch(homeProvider);
     final theme = Theme.of(context);
-    final unreadCount =
-        ref.watch(unreadNotificationsCountProvider).valueOrNull ?? 0;
+    final unreadCount = ref.watch(unreadNotificationsCountProvider);
+
+    // Use synchronous provider for immediate cached data
+    final syncCachedData = ref.watch(syncCachedHomeProvider);
+
+    // Get user for header
+    User? user;
+    if (syncCachedData != null) {
+      user = syncCachedData['user'] as User?;
+    }
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        title: homeState.when(
-          data: (homeData) {
-            final user = homeData['user'];
-            return _buildUserHeader(user, theme);
-          },
-          loading: () => _buildUserHeader(
-            _createPlaceholderUser(), // Create a placeholder user for skeleton
-            theme,
-          ),
-          error: (_, __) => const Text('Investment Pro'),
-        ),
+        title: _buildUserHeader(user ?? _createPlaceholderUser(), theme),
         actions: [
           // Notification bell with badge
           Stack(
@@ -84,22 +83,77 @@ class HomeScreen extends ConsumerWidget {
       ),
       body: RefreshIndicator(
         color: AppTheme.primaryColor,
-        onRefresh: () => ref.refresh(homeProvider.future),
-        child: homeState.when(
-          data: (homeData) {
-            return _buildContent(context, homeData, false);
-          },
-          loading: () {
-            // Create placeholder data for the skeleton UI
-            final placeholderData = _createPlaceholderData();
-            return _buildContent(context, placeholderData, true);
-          },
-          error: (error, stackTrace) => CustomErrorWidget(
-            error: error.toString(),
-            onRetry: () => ref.refresh(homeProvider.future),
-          ),
-        ),
+        onRefresh: () async {
+          // Refresh both home and notifications data
+          await Future.wait([
+            ref.read(cachedHomeProvider.notifier).refresh(),
+            ref.read(cachedNotificationsProvider.notifier).refresh(),
+          ]);
+        },
+        child: syncCachedData != null
+            ? _buildInstantContent(context, ref, syncCachedData)
+            : _buildAsyncContent(context, ref),
       ),
+    );
+  }
+
+  // Show cached data INSTANTLY - no async operations!
+  Widget _buildInstantContent(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> cachedData,
+  ) {
+    print('🚀 INSTANT: Showing cached data with NO loading state!');
+
+    // Listen for background refresh errors
+    ref.listen<AsyncValue<Map<String, dynamic>>>(cachedHomeProvider, (
+      previous,
+      next,
+    ) {
+      next.whenOrNull(
+        error: (error, stack) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to refresh data'),
+                backgroundColor: Colors.red,
+                action: SnackBarAction(
+                  label: 'Retry',
+                  textColor: Colors.white,
+                  onPressed: () =>
+                      ref.read(cachedHomeProvider.notifier).refresh(),
+                ),
+              ),
+            );
+          }
+        },
+      );
+    });
+
+    return _buildContent(context, cachedData, false); // NO skeleton!
+  }
+
+  // Handle first time users (no cache) with async provider
+  Widget _buildAsyncContent(BuildContext context, WidgetRef ref) {
+    final homeState = ref.watch(cachedHomeProvider);
+
+    return homeState.when(
+      data: (homeData) {
+        print('🏠 Async: Data loaded');
+        return _buildContent(context, homeData, false);
+      },
+      loading: () {
+        print('💀 Async: Loading (first time)');
+        final placeholderData = _createPlaceholderData();
+        return _buildContent(context, placeholderData, true);
+      },
+      error: (error, stackTrace) {
+        print('❌ Async: Error');
+        return CustomErrorWidget(
+          error: error.toString(),
+          onRetry: () => ref.read(cachedHomeProvider.notifier).forceReload(),
+        );
+      },
     );
   }
 
@@ -184,10 +238,9 @@ class HomeScreen extends ConsumerWidget {
   ) {
     return Skeletonizer(
       enabled: isLoading,
-      // Customize the shimmer effect if needed
-      effect: ShimmerEffect(
-        baseColor: const Color(0xFF2A2A2A),
-        highlightColor: const Color(0xFF3A3A3A),
+      effect: const ShimmerEffect(
+        baseColor: Color(0xFF2A2A2A),
+        highlightColor: Color(0xFF3A3A3A),
       ),
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -195,6 +248,9 @@ class HomeScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16.0),
           child: Column(
             children: [
+              // Add cache status indicator (debug mode only)
+              if (!isLoading) _buildCacheStatusIndicator(context),
+
               // Balance Summary Card
               BalanceSummaryCard(
                 user: data['user'],
@@ -225,6 +281,44 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // Cache status indicator (for debugging)
+  Widget _buildCacheStatusIndicator(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final cachedProvider = ref.read(cachedHomeProvider.notifier);
+        final cacheInfo = cachedProvider.getCacheInfo();
+
+        // Only show in debug mode
+        if (!kDebugMode) return const SizedBox.shrink();
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.green.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.green.withOpacity(0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.cached, color: Colors.green, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                'Data loaded from cache',
+                style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

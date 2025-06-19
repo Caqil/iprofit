@@ -1,4 +1,4 @@
-// lib/app/router.dart (Fixed version)
+// lib/app/router.dart (Simplified version)
 import 'package:app/features/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -51,10 +51,10 @@ class AppRoutes {
   static const String notifications = '/notifications';
 }
 
-// Simplified Router Notifier - only redirects after initialization
+// Simple Router Notifier - minimal redirects
 class RouterNotifier extends ChangeNotifier {
   RouterNotifier(this._ref) {
-    // Listen to auth state changes for logged-in users
+    // Listen to auth state changes for navigation updates
     _ref.listen<AsyncValue<dynamic>>(
       authProvider,
       (_, __) => notifyListeners(),
@@ -63,7 +63,7 @@ class RouterNotifier extends ChangeNotifier {
 
   final Ref _ref;
 
-  // Get current auth state
+  // Get current auth state - only check if user is loaded, not loading state
   bool get isLoggedIn {
     final authState = _ref.read(authProvider);
     return authState.valueOrNull != null;
@@ -76,11 +76,15 @@ class RouterNotifier extends ChangeNotifier {
 
   String? redirect(BuildContext context, GoRouterState state) {
     final currentPath = state.uri.path;
-    final isLoggedIn = this.isLoggedIn;
     final onboardingState = this.onboardingState;
 
-    // Don't redirect if we're still loading or on splash screen
-    if (onboardingState.isLoading || currentPath == AppRoutes.splash) {
+    // NEVER redirect from splash screen - let it handle navigation
+    if (currentPath == AppRoutes.splash) {
+      return null;
+    }
+
+    // Don't redirect if onboarding is still loading
+    if (onboardingState.isLoading) {
       return null;
     }
 
@@ -94,20 +98,37 @@ class RouterNotifier extends ChangeNotifier {
       AppRoutes.forgotPassword,
     ];
 
-    // If user is trying to access onboarding but has already completed it
-    if (currentPath == AppRoutes.onboarding && onboardingState.hasCompleted) {
-      return isLoggedIn ? AppRoutes.home : AppRoutes.login;
+    // If user hasn't completed onboarding, redirect to onboarding
+    if (!onboardingState.hasCompleted && !publicRoutes.contains(currentPath)) {
+      return AppRoutes.onboarding;
     }
 
-    // If user is on auth route but already logged in
+    // If user is trying to access onboarding but has already completed it
+    if (currentPath == AppRoutes.onboarding && onboardingState.hasCompleted) {
+      // Don't redirect based on auth here - let splash handle this logic
+      return AppRoutes.splash;
+    }
+
+    // For protected routes, check if user is logged in
+    // But be less aggressive about redirects - let screens handle their own auth checks
+    final authState = _ref.read(authProvider);
+    final isLoggedIn = authState.valueOrNull != null;
+
+    // Only redirect to login if:
+    // 1. User is trying to access protected route
+    // 2. Auth state is definitely resolved (not loading)
+    // 3. User is definitely not logged in
+    if (!publicRoutes.contains(currentPath) &&
+        authState is! AsyncLoading &&
+        !isLoggedIn &&
+        onboardingState.hasCompleted) {
+      return AppRoutes.login;
+    }
+
+    // If user is on auth route but already logged in, go to home
     if (isLoggedIn &&
         [AppRoutes.login, AppRoutes.register].contains(currentPath)) {
       return AppRoutes.home;
-    }
-
-    // If user is trying to access protected route without auth
-    if (!isLoggedIn && !publicRoutes.contains(currentPath)) {
-      return AppRoutes.login;
     }
 
     // No redirect needed
@@ -120,7 +141,7 @@ final routerProvider = Provider<GoRouter>((ref) {
   final routerNotifier = RouterNotifier(ref);
 
   return GoRouter(
-    initialLocation: AppRoutes.splash, // Start with splash screen
+    initialLocation: AppRoutes.splash, // Always start with splash
     debugLogDiagnostics: true,
     refreshListenable: routerNotifier,
     redirect: routerNotifier.redirect,
@@ -185,7 +206,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
 
-      // Main App Routes (Protected)
+      // Main App Routes
       GoRoute(
         path: AppRoutes.home,
         builder: (context, state) => const MainScreen(),
@@ -241,8 +262,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.newsDetail,
         builder: (context, state) {
-          final id = state.pathParameters['id']!;
-          return NewsDetailScreen(newsId: int.parse(id));
+          final id = int.tryParse(state.pathParameters['id'] ?? '');
+          if (id == null) {
+            return const Scaffold(body: Center(child: Text('Invalid news ID')));
+          }
+          return NewsDetailScreen(newsId: id);
         },
       ),
       GoRoute(

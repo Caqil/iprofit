@@ -5,7 +5,7 @@ import '../../../models/transaction.dart';
 import '../../../models/task.dart';
 import '../../../models/referral.dart';
 import '../../../repositories/base_repository.dart';
-import '../providers/home_provider.dart';
+import '../providers/cached_home_provider.dart';
 
 class HomeRepository extends BaseRepository {
   final ApiClient _apiClient;

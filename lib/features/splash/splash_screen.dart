@@ -1,9 +1,9 @@
-import 'package:app/features/auth/providers/auth_provider.dart';
+// lib/features/splash/splash_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/services/onboarding_service.dart';
-
+import '../auth/providers/auth_check_provider.dart';
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
@@ -17,6 +17,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late AnimationController _fadeController;
   late Animation<double> _logoAnimation;
   late Animation<double> _fadeAnimation;
+
+  String _loadingText = 'Welcome...';
 
   @override
   void initState() {
@@ -45,7 +47,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     _logoController.forward();
     _fadeController.forward();
 
-    // Start the navigation logic after a minimum display time
+    // Simple initialization - no data preloading needed!
     _initializeApp();
   }
 
@@ -57,63 +59,92 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   }
 
   Future<void> _initializeApp() async {
-    // Ensure splash shows for at least 2 seconds for better UX
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      // Show splash for minimum time
+      final minimumTime = Future.delayed(const Duration(seconds: 2));
 
-    // Wait for initialization to complete
-    await _waitForInitialization();
+      // Simple checks only - no data loading!
+      await _performSimpleChecks();
 
-    // Navigate to appropriate screen
-    if (mounted) {
-      _navigateToNextScreen();
+      // Wait for minimum time
+      await minimumTime;
+
+      // Navigate
+      if (mounted) {
+        _navigateToNextScreen();
+      }
+    } catch (e) {
+      print('Splash initialization error: $e');
+      if (mounted) {
+        // On error, go to login
+        context.go('/login');
+      }
     }
   }
 
-  Future<void> _waitForInitialization() async {
-    // Simple approach: just wait for onboarding state to load
+  Future<void> _performSimpleChecks() async {
+    // Step 1: Check onboarding
+    setState(() => _loadingText = 'Checking setup...');
+    await _waitForOnboarding();
+
+    final onboardingState = ref.read(onboardingStateProvider);
+    if (!onboardingState.hasCompleted) {
+      setState(() => _loadingText = 'First time setup...');
+      return;
+    }
+
+    // Step 2: Simple auth check (token only)
+    setState(() => _loadingText = 'Checking authentication...');
+    await _checkAuthToken();
+
+    setState(() => _loadingText = 'Ready!');
+  }
+
+  Future<void> _waitForOnboarding() async {
     int attempts = 0;
     while (ref.read(onboardingStateProvider).isLoading && attempts < 50) {
       await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
     }
+  }
 
-    // Give auth provider a moment to initialize if onboarding is completed
-    final onboardingState = ref.read(onboardingStateProvider);
-    if (onboardingState.hasCompleted) {
-      // Wait a bit for auth to load, but don't block indefinitely
-      await Future.delayed(const Duration(milliseconds: 500));
-    }
+  Future<void> _checkAuthToken() async {
+    // Just trigger the auth check - no data preloading
+    ref.read(authCheckProvider);
+
+    // Give it a moment to check
+    await Future.delayed(const Duration(milliseconds: 300));
   }
 
   void _navigateToNextScreen() {
     final onboardingState = ref.read(onboardingStateProvider);
 
+    // Check onboarding first
     if (!onboardingState.hasCompleted) {
-      // First time user - go to onboarding
+      print('🔄 Navigating to onboarding - first time user');
       context.go('/onboarding');
       return;
     }
 
-    // Check auth state for returning users
-    final authState = ref.read(authProvider);
+    // Check auth status
+    final authCheck = ref.read(authCheckProvider);
 
-    // Use pattern matching to handle AsyncValue
-    authState.when(
-      data: (user) {
-        if (user != null) {
-          // User is logged in - go to home
+    authCheck.when(
+      data: (isLoggedIn) {
+        if (isLoggedIn) {
+          print('🏠 Navigating to home - data will load from cache instantly');
           context.go('/');
         } else {
-          // User not logged in - go to login
+          print('🔐 Navigating to login - no valid token');
           context.go('/login');
         }
       },
       loading: () {
-        // Still loading auth - default to login
+        print('⏳ Auth check still loading - defaulting to login');
         context.go('/login');
       },
       error: (error, stack) {
-        // Auth error - go to login
+        print('❌ Auth check error: $error - going to login');
         context.go('/login');
       },
     );
@@ -124,7 +155,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A0A0A), // Deep dark background
+      backgroundColor: const Color(0xFF0A0A0A),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -156,12 +187,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                               height: 120,
                               decoration: BoxDecoration(
                                 gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
                                   colors: [
                                     theme.colorScheme.primary,
-                                    theme.colorScheme.primary.withOpacity(0.7),
+                                    theme.colorScheme.primary.withOpacity(0.8),
                                   ],
                                 ),
-                                borderRadius: BorderRadius.circular(60),
+                                borderRadius: BorderRadius.circular(30),
                                 boxShadow: [
                                   BoxShadow(
                                     color: theme.colorScheme.primary
@@ -181,45 +214,49 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                         },
                       ),
 
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 32),
 
-                      // App Name with fade animation
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: Column(
-                          children: [
-                            Text(
-                              'Investment App',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: 1.2,
-                              ),
+                      // App Name
+                      AnimatedBuilder(
+                        animation: _fadeAnimation,
+                        builder: (context, child) {
+                          return Opacity(
+                            opacity: _fadeAnimation.value,
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Investment Pro',
+                                  style: theme.textTheme.headlineMedium
+                                      ?.copyWith(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 1.2,
+                                      ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Smart Investment Platform',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: Colors.white.withOpacity(0.7),
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Your Financial Future Starts Here',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey.shade400,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
                     ],
                   ),
                 ),
               ),
 
-              // Loading indicator at bottom
+              // Simple loading indicator
               Padding(
-                padding: const EdgeInsets.only(bottom: 50),
+                padding: const EdgeInsets.only(bottom: 64.0),
                 child: Column(
                   children: [
-                    // Custom loading indicator
+                    // Loading indicator
                     SizedBox(
                       width: 40,
                       height: 40,
@@ -231,14 +268,16 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                       ),
                     ),
                     const SizedBox(height: 16),
-                    FadeTransition(
-                      opacity: _fadeAnimation,
+
+                    // Loading text
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
                       child: Text(
-                        'Loading...',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade500,
-                          letterSpacing: 0.5,
+                        _loadingText,
+                        key: ValueKey(_loadingText),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withOpacity(0.8),
+                          fontSize: 16,
                         ),
                       ),
                     ),

@@ -1,7 +1,7 @@
 // lib/features/notifications/screens/notifications_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/notifications_provider.dart';
+import '../providers/cached_notifications_provider.dart';
 import '../../../core/enums/notification_type.dart';
 import '../../../core/utils/formatters.dart';
 import '../../../shared/widgets/error_widget.dart';
@@ -11,7 +11,7 @@ class NotificationsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final notificationsState = ref.watch(notificationsProvider);
+    final notificationsState = ref.watch(cachedNotificationsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -27,7 +27,7 @@ class NotificationsScreen extends ConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () => ref.refresh(notificationsProvider.future),
+        onRefresh: () => ref.refresh(cachedNotificationsProvider.future),
         child: notificationsState.when(
           data: (notifications) {
             if (notifications.isEmpty) {
@@ -65,7 +65,7 @@ class NotificationsScreen extends ConsumerWidget {
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stackTrace) => CustomErrorWidget(
             error: error.toString(),
-            onRetry: () => ref.refresh(notificationsProvider.future),
+            onRetry: () => ref.refresh(cachedNotificationsProvider.future),
           ),
         ),
       ),
@@ -114,7 +114,7 @@ class NotificationsScreen extends ConsumerWidget {
       onDismissed: (_) {
         // Not implementing delete functionality here
         // Just mark as read
-        ref.read(notificationsProvider.notifier).markAsRead(notification.id);
+        ref.read(cachedNotificationsProvider.notifier).markAsRead(notification.id);
       },
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -159,7 +159,7 @@ class NotificationsScreen extends ConsumerWidget {
         onTap: () {
           if (!notification.isRead) {
             ref
-                .read(notificationsProvider.notifier)
+                .read(cachedNotificationsProvider.notifier)
                 .markAsRead(notification.id);
           }
         },
@@ -168,7 +168,7 @@ class NotificationsScreen extends ConsumerWidget {
   }
 
   void _markAllAsRead(BuildContext context, WidgetRef ref) {
-    ref.read(notificationsProvider.notifier).markAllAsRead();
+    ref.read(cachedNotificationsProvider.notifier).markAllAsRead();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('All notifications marked as read')),
     );
