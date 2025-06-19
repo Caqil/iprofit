@@ -18,6 +18,30 @@ class ProfileScreen extends ConsumerWidget {
     final profileState = ref.watch(profileProvider);
 
     return Scaffold(
+      appBar: AppBar(
+        centerTitle: false,
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Profile',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white70),
+            onPressed: () {},
+          ),
+        ],
+      ),
       backgroundColor: const Color(0xFF1A1A1A),
 
       body: RefreshIndicator(

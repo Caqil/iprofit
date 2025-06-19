@@ -32,54 +32,7 @@ class MainScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: selectedIndex == 0
-          ? null
-          : AppBar(
-              backgroundColor: const Color(0xFF1A1A1A),
-              title: Text(_getTitle(selectedIndex)),
-              foregroundColor: Colors.white,
-              elevation: 0,
-              actions: [
-                // Notification icon with badge
-                Stack(
-                  children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.notifications_outlined,
-                        color: Colors.white,
-                      ),
-                      onPressed: () {
-                        context.push('/notifications');
-                      },
-                    ),
-                    if (unreadCount > 0)
-                      Positioned(
-                        right: 8,
-                        top: 8,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryColor,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 14,
-                            minHeight: 14,
-                          ),
-                          child: Text(
-                            unreadCount > 9 ? '9+' : '$unreadCount',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 8,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
+
       body: screens[selectedIndex],
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -137,7 +90,7 @@ class MainScreen extends ConsumerWidget {
       case 0:
         return 'Iprofit';
       case 1:
-        return 'Refer';
+        return 'Refer & Earn';
       case 2:
         return 'Wallet';
       case 3:

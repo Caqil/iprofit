@@ -201,6 +201,29 @@ class _WalletScreenState extends ConsumerState<WalletScreen>
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A1A),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'Wallets',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline, color: Colors.white70),
+            onPressed: () {},
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _handleRefresh,
         color: AppTheme.primaryColor,
